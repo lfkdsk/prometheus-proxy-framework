@@ -167,4 +167,8 @@ public class Lexer {
             state = statementsMap.get(state.nextTo(this));
         }
     }
+
+    public static Lexer lexer(String input) {
+        return new Lexer(input);
+    }
 }
