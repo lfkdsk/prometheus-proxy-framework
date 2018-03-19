@@ -130,6 +130,11 @@ public class LexStatements extends State {
                 lexer.setStringOpen(c);
                 return LexString;
             }
+
+            case '`': {
+                lexer.setStringOpen(c);
+                return LexRawString;
+            }
             default: {
                 return lexer.error("unexpected character: %c", c);
             }

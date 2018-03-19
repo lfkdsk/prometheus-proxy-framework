@@ -199,7 +199,10 @@ class LexerTest {
                 TokenItem.of(ItemType.itemError, 0, "unknown escape sequence '.'"),
                 TokenItem.of(ItemType.itemString, 0, "\"test\\.expression\"")
         ).test();
+    }
 
+    @Test
+    void testRawString() {
         TestItem.of(
                 "`test\\.expression`",
                 TokenItem.of(ItemType.itemString, 0, "`test\\.expression`")

@@ -25,7 +25,8 @@ public final class States {
                 new LexNumberOrDuration(),
                 new LexKeywordOrIdentifier(),
                 new LexString(),
-                new LexEscape()
+                new LexEscape(),
+                new LexRawString()
         ).forEach(state -> statementsMap.put(state.getLexerStates(), state));
 
         // initial keyword map
