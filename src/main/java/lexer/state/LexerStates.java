@@ -11,6 +11,7 @@ public enum LexerStates {
     LexValueSequence,
     LexDuration,
     LexNumberOrDuration,
+    LexNumber,
     LexKeywordOrIdentifier,
     LexEscape,
 }

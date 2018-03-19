@@ -37,7 +37,7 @@ public class LexKeywordOrIdentifier extends State {
             break;
         }
 
-        if (lexer.isSeriesDesc() && lexer.peek() != '{') {
+        if (lexer.isSeriesDesc() && Objects.nonNull(lexer.peek()) && lexer.peek() != '{') {
             return LexValueSequence;
         }
 

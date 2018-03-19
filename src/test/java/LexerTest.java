@@ -539,10 +539,34 @@ class LexerTest {
                 TokenItem.of(itemTimes, 7, "x"),
                 TokenItem.of(itemNumber, 9, ".3")
         ).test();
+
+        TestItem.of(
+                "metric +Inf Inf NaN",
+                false,
+                true,
+                TokenItem.of(itemIdentifier, 0, "metric"),
+                TokenItem.of(itemADD, 7, "+"),
+                TokenItem.of(itemNumber, 8, "Inf"),
+                TokenItem.of(itemNumber, 12, "Inf"),
+                TokenItem.of(itemNumber, 16, "NaN")
+        ).test();
+
+        TestItem.of(
+                "metric 1+1x4",
+                false,
+                true,
+                TokenItem.of(itemIdentifier, 0, "metric"),
+                TokenItem.of(itemNumber, 7, "1"),
+                TokenItem.of(itemADD, 8, "+"),
+                TokenItem.of(itemNumber, 9, "1"),
+                TokenItem.of(itemTimes, 10, "x"),
+                TokenItem.of(itemNumber, 11, "4")
+        ).test();
     }
 
     static void testLexer(TestItem testItem) {
         Lexer lexer = new Lexer(testItem.input);
+        lexer.setSeriesDesc(testItem.seriesDesc);
         lexer.run();
 
         TokenItem lastItem = lexer.getItems().get(lexer.getItems().size() - 1);
