@@ -35,6 +35,7 @@ class LexerTest {
         }
     }
 
+    // Test common stuff.
     @Test
     void testComma() {
         TestItem.of(
@@ -79,13 +80,49 @@ class LexerTest {
         ).test();
     }
 
+    // test number
     @Test
     void testSimpleNumber() {
         TestItem.of(
                 "1",
                 TokenItem.of(ItemType.itemNumber, 0, "1")
-        );
+        ).test();
     }
+
+    @Test
+    void testSimpleNumber1() {
+        TestItem.of(
+                "4.23",
+                TokenItem.of(ItemType.itemNumber, 0, "4.23")
+        ).test();
+    }
+
+    @Test
+    void testSimpleNumber2() {
+        TestItem.of(
+                ".3",
+                TokenItem.of(ItemType.itemNumber, 0, ".3")
+        ).test();
+    }
+
+    @Test
+    void testSimpleNumber3() {
+        TestItem.of(
+                "5.",
+                TokenItem.of(ItemType.itemNumber, 0, "5.")
+        ).test();
+    }
+
+    @Test
+    void testNaNNumber() {
+        TestItem.of(
+                "NaN",
+                TokenItem.of(ItemType.itemNumber, 0, "NaN")
+        ).test();
+    }
+
+
+
 
     static void testLexer(TestItem testItem) {
         Lexer lexer = new Lexer(testItem.input);

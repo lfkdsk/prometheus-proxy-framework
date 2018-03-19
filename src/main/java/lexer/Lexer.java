@@ -1,13 +1,20 @@
 package lexer;
 
 import com.google.common.collect.Lists;
+import com.sun.javafx.tools.packager.PackagerException;
+import exception.ParserException;
 import lexer.state.State;
 import lombok.Getter;
 import lombok.Setter;
 import token.ItemType;
 import token.TokenItem;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.StringReader;
 import java.util.List;
+import java.util.Objects;
 
 import static lexer.state.LexerStates.LexStatements;
 import static lexer.state.States.statementsMap;
@@ -16,6 +23,7 @@ import static utils.NumberUtils.isAlphaNumeric;
 public class Lexer {
     @Getter
     private final String input;
+    private final LineNumberReader reader;
     private State state;
     private int position;
     private int start;
@@ -48,6 +56,7 @@ public class Lexer {
 
     public Lexer(String input) {
         this.input = input;
+        this.reader = new LineNumberReader(new StringReader(input));
         this.items = Lists.newLinkedList();
         this.state = statementsMap.get(LexStatements);
     }
@@ -87,7 +96,10 @@ public class Lexer {
     }
 
     public boolean accept(String valid) {
-        if (valid.contains(String.valueOf(next()))) {
+        Character ch = next();
+        if (Objects.isNull(ch)) {
+            return false;
+        } else if (valid.contains(String.valueOf(ch))) {
             return true;
         }
 
@@ -96,7 +108,15 @@ public class Lexer {
     }
 
     public void acceptRun(String valid) {
-        for (; valid.contains(String.valueOf(next())); ) {/* consume next value*/}
+        Character ch = next();
+        while (valid.contains(String.valueOf(ch))) {
+            ch = next();
+        }
+
+        if (Objects.isNull(ch)) {
+            return;
+        }
+
         this.backup();
     }
 
@@ -126,7 +146,11 @@ public class Lexer {
             this.acceptRun("0123456789");
         }
 
-        Character ch = this.peek();
+        Character ch = peek();
+        if (Objects.isNull(ch)) {
+            return true;
+        }
+
         if ((this.isSeriesDesc() && ch == 'x') || !isAlphaNumeric(ch)) {
             return true;
         }

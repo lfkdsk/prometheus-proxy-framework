@@ -14,7 +14,8 @@ public final class States {
                 new LexStatements(),
                 new LexSpace(),
                 new LexInsideBrace(),
-                new LexDuration()
+                new LexDuration(),
+                new LexNumberOrDuration()
         ).forEach(state -> statementsMap.put(state.getLexerStates(), state));
     }
 }

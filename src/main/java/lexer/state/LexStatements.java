@@ -8,6 +8,7 @@ import java.util.Objects;
 import static java.lang.String.format;
 import static lexer.state.LexerStates.*;
 import static token.ItemType.*;
+import static utils.NumberUtils.isDigit;
 
 @StatesBinder(binder = LexStatements)
 public class LexStatements extends State {
@@ -41,6 +42,12 @@ public class LexStatements extends State {
         // Space
         if (Character.isWhitespace(c)) {
             return LexSpace;
+        }
+
+        // digits
+        if (isDigit(c) || (c == '.' && isDigit(lexer.peek()))) {
+            lexer.backup();
+            return LexNumberOrDuration;
         }
 
         switch (c) {
@@ -86,7 +93,7 @@ public class LexStatements extends State {
                 }
                 return LexStatements;
             }
-            case '{':{
+            case '{': {
                 lexer.emit(itemLeftBrace);
                 lexer.setBraceOpen(true);
                 return LexInsideBrace;
