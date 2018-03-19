@@ -1,6 +1,5 @@
 package lexer.state;
 
-import exception.ParserException;
 import lexer.Lexer;
 
 import static java.lang.String.format;
@@ -14,13 +13,13 @@ public class LexDuration extends State {
     @Override
     public LexerStates nextTo(Lexer lexer) {
         if (lexer.scanNumber()) {
-            throw new ParserException("missing unit character in duration");
+            return lexer.error("missing unit character in duration");
         }
 
         // Next two chars must be a valid unit and a non-alphanumeric.
         if (lexer.accept("smhdwy")) {
             if (isAlphaNumeric(lexer.next())) {
-                throw new ParserException(format("bad duration syntax: %s", lexer.current()));
+                return lexer.error("bad duration syntax: %s", lexer.current());
             }
 
             lexer.backup();
@@ -28,6 +27,6 @@ public class LexDuration extends State {
             return LexStatements;
         }
 
-        throw new ParserException(format("bad duration syntax: %s", lexer.current()));
+        return lexer.error("bad duration syntax: %s", lexer.current());
     }
 }

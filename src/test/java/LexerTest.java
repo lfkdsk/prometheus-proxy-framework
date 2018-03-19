@@ -119,10 +119,92 @@ class LexerTest {
                 "NaN",
                 TokenItem.of(ItemType.itemNumber, 0, "NaN")
         ).test();
+
+        TestItem.of(
+                "naN",
+                TokenItem.of(ItemType.itemNumber, 0, "naN")
+        ).test();
     }
 
+    @Test
+    void testInfNumber() {
+        TestItem.of(
+                "Inf",
+                TokenItem.of(ItemType.itemNumber, 0, "Inf")
+        ).test();
 
+        TestItem.of(
+                "inF",
+                TokenItem.of(ItemType.itemNumber, 0, "inF")
+        ).test();
 
+        TestItem.of(
+                "+inF",
+                TokenItem.of(ItemType.itemADD, 0, "+"),
+                TokenItem.of(ItemType.itemNumber, 1, "inF")
+        ).test();
+
+        TestItem.of(
+                "+inF 123",
+                TokenItem.of(ItemType.itemADD, 0, "+"),
+                TokenItem.of(ItemType.itemNumber, 1, "inF"),
+                TokenItem.of(ItemType.itemNumber, 5, "123")
+        ).test();
+
+        TestItem.of(
+                "Infoo",
+                TokenItem.of(ItemType.itemIdentifier, 0, "Infoo")
+        ).test();
+    }
+
+    @Test
+    void testMultiNumber() {
+        TestItem.of(
+                "Nan 123",
+                TokenItem.of(ItemType.itemNumber, 0, "Nan"),
+                TokenItem.of(ItemType.itemNumber, 4, "123")
+        ).test();
+
+        TestItem.of(
+                "0x123",
+                TokenItem.of(ItemType.itemNumber, 0, "0x123")
+        ).test();
+    }
+
+    @Test
+    void testIdentifier() {
+        TestItem.of(
+                "NaN123",
+                TokenItem.of(ItemType.itemIdentifier, 0, "NaN123")
+        ).test();
+    }
+
+    @Test
+    void testStrings() {
+        TestItem.of(
+                "\"test\\tsequence\"",
+                TokenItem.of(ItemType.itemString, 0, "\"test\\tsequence\"")
+        ).test();
+    }
+
+    @Test
+    void testMultiStrings() {
+        TestItem.of(
+                "\"test\\\\.expression\"",
+                TokenItem.of(ItemType.itemString, 0, "\"test\\\\.expression\"")
+        ).test();
+
+        TestItem.of(
+                "\"test\\.expression\"",
+                TokenItem.of(ItemType.itemError, 0, "unknown escape sequence '.'"),
+                TokenItem.of(ItemType.itemString, 0, "\"test\\.expression\"")
+        ).test();
+
+        TestItem.of(
+                "`test\\.expression`",
+                TokenItem.of(ItemType.itemString, 0, "`test\\.expression`")
+        ).test();
+    }
 
     static void testLexer(TestItem testItem) {
         Lexer lexer = new Lexer(testItem.input);

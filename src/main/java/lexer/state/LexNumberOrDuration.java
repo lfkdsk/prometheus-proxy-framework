@@ -1,8 +1,6 @@
 package lexer.state;
 
-import exception.ParserException;
 import lexer.Lexer;
-import token.ItemType;
 
 import static java.lang.String.format;
 import static lexer.state.LexerStates.*;
@@ -22,7 +20,7 @@ public class LexNumberOrDuration extends State {
         // Next two chars must be a valid unit and a non-alphanumeric.
         if (lexer.accept("smhdwy")) {
             if (isAlphaNumeric(lexer.next())) {
-                throw new ParserException(format("bad number or duration syntax: %s", lexer.current()));
+                return lexer.error("bad number or duration syntax: %s", lexer.current());
             }
 
             lexer.backup();
@@ -30,6 +28,6 @@ public class LexNumberOrDuration extends State {
             return LexStatements;
         }
 
-        throw new ParserException(format("bad number or duration syntax: %s", lexer.current()));
+        return lexer.error("bad number or duration syntax: %s", lexer.current());
     }
 }

@@ -1,21 +1,19 @@
 package lexer;
 
 import com.google.common.collect.Lists;
-import com.sun.javafx.tools.packager.PackagerException;
-import exception.ParserException;
+import lexer.state.LexerStates;
 import lexer.state.State;
 import lombok.Getter;
 import lombok.Setter;
 import token.ItemType;
 import token.TokenItem;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.StringReader;
 import java.util.List;
 import java.util.Objects;
 
+import static java.lang.String.format;
 import static lexer.state.LexerStates.LexStatements;
 import static lexer.state.States.statementsMap;
 import static utils.NumberUtils.isAlphaNumeric;
@@ -51,6 +49,8 @@ public class Lexer {
     @Setter
     private boolean seriesDesc;
 
+    private Character currentChar;
+
     @Getter
     private List<TokenItem> items;
 
@@ -63,10 +63,11 @@ public class Lexer {
 
     public Character next() {
         if (position >= input.length()) {
+            this.currentChar = null;
             return null;
         }
 
-        char subStr = input.charAt(position);
+        char subStr = currentChar = input.charAt(position);
         this.position += 1;
         return subStr;
     }
@@ -82,7 +83,9 @@ public class Lexer {
     }
 
     public void backup() {
-        this.position -= 1;
+        if (Objects.nonNull(currentChar)) {
+            this.position -= 1;
+        }
     }
 
     public void ignore() {
@@ -96,10 +99,7 @@ public class Lexer {
     }
 
     public boolean accept(String valid) {
-        Character ch = next();
-        if (Objects.isNull(ch)) {
-            return false;
-        } else if (valid.contains(String.valueOf(ch))) {
+        if (valid.contains(String.valueOf(next()))) {
             return true;
         }
 
@@ -108,14 +108,7 @@ public class Lexer {
     }
 
     public void acceptRun(String valid) {
-        Character ch = next();
-        while (valid.contains(String.valueOf(ch))) {
-            ch = next();
-        }
-
-        if (Objects.isNull(ch)) {
-            return;
-        }
+        for (;valid.contains(String.valueOf(next())););
 
         this.backup();
     }
@@ -156,6 +149,12 @@ public class Lexer {
         }
 
         return false;
+    }
+
+    public LexerStates error(String format, Object ... args) {
+        System.err.printf(format, args);
+        this.items.add(TokenItem.of(ItemType.itemError, start, format(format, args)));
+        return null;
     }
 
     public void run() {

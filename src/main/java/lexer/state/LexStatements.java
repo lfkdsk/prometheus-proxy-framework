@@ -1,6 +1,5 @@
 package lexer.state;
 
-import exception.ParserException;
 import lexer.Lexer;
 
 import java.util.Objects;
@@ -8,6 +7,7 @@ import java.util.Objects;
 import static java.lang.String.format;
 import static lexer.state.LexerStates.*;
 import static token.ItemType.*;
+import static utils.NumberUtils.isAlpha;
 import static utils.NumberUtils.isDigit;
 
 @StatesBinder(binder = LexStatements)
@@ -29,9 +29,9 @@ public class LexStatements extends State {
         Character c = lexer.next();
         if (Objects.isNull(c)) {
             if (lexer.getParenDepth() != 0) {
-                throw new ParserException("unclosed left parenthesis");
+                return lexer.error("unclosed left parenthesis");
             } else if (lexer.isBracketOpen()) {
-                throw new ParserException("unclosed left bracket");
+                return lexer.error("unclosed left bracket");
             }
 
             lexer.emit(itemEOF);
@@ -45,9 +45,15 @@ public class LexStatements extends State {
         }
 
         // digits
-        if (isDigit(c) || (c == '.' && isDigit(lexer.peek()))) {
+        else if (isDigit(c) || (c == '.' && isDigit(lexer.peek()))) {
             lexer.backup();
             return LexNumberOrDuration;
+        }
+
+        // keyword (NaN as number in this fork)
+        else if (isAlpha(c) || c == ':') {
+            lexer.backup();
+            return LexKeywordOrIdentifier;
         }
 
         switch (c) {
@@ -89,7 +95,7 @@ public class LexStatements extends State {
                 lexer.emit(itemRightParen);
                 lexer.setParenDepth(lexer.getParenDepth() - 1);
                 if (lexer.getParenDepth() < 0) {
-                    throw new ParserException(format("unexpected right parenthesis %c", c));
+                    return lexer.error("unexpected right parenthesis %c", c);
                 }
                 return LexStatements;
             }
@@ -101,7 +107,7 @@ public class LexStatements extends State {
 
             case '[': {
                 if (lexer.isBracketOpen()) {
-                    throw new ParserException(format("unexpected left bracket %c", c));
+                    return lexer.error("unexpected left bracket %c", c);
                 }
 
                 lexer.emit(itemLeftBracket);
@@ -111,15 +117,21 @@ public class LexStatements extends State {
 
             case ']': {
                 if (!lexer.isBracketOpen()) {
-                    throw new ParserException(format("unexpected right bracket %c", c));
+                    return lexer.error("unexpected right bracket %c", c);
                 }
 
                 lexer.emit(itemRightBracket);
                 lexer.setBracketOpen(false);
                 break;
             }
+
+            case '\"':
+            case '\'': {
+                lexer.setStringOpen(c);
+                return LexString;
+            }
             default: {
-                throw new ParserException(format("unexpected character: %c", c));
+                return lexer.error("unexpected character: %c", c);
             }
         }
 

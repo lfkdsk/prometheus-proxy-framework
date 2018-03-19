@@ -1,6 +1,5 @@
 package lexer.state;
 
-import exception.ParserException;
 import lexer.Lexer;
 
 import java.util.Objects;
@@ -19,7 +18,7 @@ public class LexInsideBrace extends State{
 
         Character ch = lexer.next();
         if (Objects.isNull(ch)) {
-            throw new ParserException("unexpected end of input inside braces");
+            return lexer.error("unexpected end of input inside braces");
         } else if (Character.isWhitespace(ch)) {
             return LexSpace;
         } else if (Character.isAlphabetic(ch)) {
@@ -61,13 +60,13 @@ public class LexInsideBrace extends State{
                 } else if (next == '=') {
                     lexer.emit(itemNEQ);
                 } else {
-                    throw new ParserException(format("unexpected character after '!' inside braces: %c", next));
+                    return lexer.error("unexpected character after '!' inside braces: %c", next);
                 }
                 break;
             }
 
             case '{': {
-                throw new ParserException(format("unexpected left brace %c", ch));
+                return lexer.error("unexpected left brace %c", ch);
             }
 
             case '}': {
@@ -83,7 +82,7 @@ public class LexInsideBrace extends State{
             }
 
             default: {
-                throw new ParserException(format("unexpected character inside braces: %c", ch));
+                return lexer.error("unexpected character inside braces: %c", ch);
             }
         }
         return LexInsideBrace;
