@@ -26,8 +26,12 @@ class LexerTest {
             return new TestItem(input, fail, seriesDesc, expected);
         }
 
+        public static TestItem of(String input, boolean fail, TokenItem... expected) {
+            return new TestItem(input, fail, false, expected);
+        }
+
         public static TestItem of(String input, TokenItem... expected) {
-            return new TestItem(input, true, false, expected);
+            return new TestItem(input, false, false, expected);
         }
 
         public void test() {
@@ -209,12 +213,92 @@ class LexerTest {
         ).test();
     }
 
+    @Test
+    void testNonCode() {
+        TestItem.of(
+                ".٩",
+                true,
+                false
+        ).test();
+    }
+
+    // Test duration.
+    @Test
+    void testDurations() {
+        TestItem.of(
+                "5s",
+                TokenItem.of(ItemType.itemDuration, 0, "5s")
+        ).test();
+
+        TestItem.of(
+                "123m",
+                TokenItem.of(ItemType.itemDuration, 0, "123m")
+        ).test();
+
+        TestItem.of(
+                "1h",
+                TokenItem.of(ItemType.itemDuration, 0, "1h")
+        ).test();
+
+        TestItem.of(
+                "3w",
+                TokenItem.of(ItemType.itemDuration, 0, "3w")
+        ).test();
+
+        TestItem.of(
+                "1y",
+                TokenItem.of(ItemType.itemDuration, 0, "1y")
+        ).test();
+    }
+
+    // Test identifiers.
+    @Test
+    void testMoreIdentifier() {
+        TestItem.of(
+                "abc",
+                TokenItem.of(ItemType.itemIdentifier, 0, "abc")
+        ).test();
+
+        TestItem.of(
+                "abc d",
+                TokenItem.of(ItemType.itemIdentifier, 0, "abc"),
+                TokenItem.of(ItemType.itemIdentifier, 4, "d")
+        ).test();
+    }
+
+    @Test
+    void testMetricIdentifier() {
+        TestItem.of(
+                "a:bc",
+                TokenItem.of(ItemType.itemMetricIdentifier, 0, "a:bc")
+        ).test();
+
+        TestItem.of(
+                ":bc",
+                TokenItem.of(ItemType.itemMetricIdentifier, 0, ":bc")
+        ).test();
+    }
+
     static void testLexer(TestItem testItem) {
         Lexer lexer = new Lexer(testItem.input);
         lexer.run();
 
         // EOF symbol
         assertEquals(testItem.expected.length + 1, lexer.getItems().size());
+
+        TokenItem lastItem = lexer.getItems().get(lexer.getItems().size() - 1);
+        if (testItem.fail) {
+            if (lastItem.type != ItemType.itemError) {
+                System.err.printf("input %s", testItem.input);
+                System.err.printf("expected lexing error but did not fail");
+            }
+            return;
+        }
+
+        if (lastItem.type == ItemType.itemError) {
+            System.err.printf("input %s", testItem.input);
+            System.err.printf("unexpected lexing error at position %d: %s", lastItem.position, lastItem.text);
+        }
 
         for (int i = 0; i < testItem.expected.length; i++) {
             TokenItem item = lexer.getItems().get(i);
