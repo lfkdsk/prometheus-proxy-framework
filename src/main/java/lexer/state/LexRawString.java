@@ -14,8 +14,7 @@ public class LexRawString extends State {
         for (; ; ) {
             Character ch = lexer.next();
             if (Objects.isNull(ch)) {
-                lexer.error("unterminated raw string");
-                return null;
+                return lexer.error("unterminated raw string");
             }
 
             if (Objects.equals(ch, lexer.getStringOpen())) {

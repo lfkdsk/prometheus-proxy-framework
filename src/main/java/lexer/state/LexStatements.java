@@ -135,6 +135,54 @@ public class LexStatements extends State {
                 lexer.setStringOpen(c);
                 return LexRawString;
             }
+
+            case '=': {
+                Character next = lexer.peek();
+                if (Objects.nonNull(next) && next == '=') {
+                    lexer.next();
+                    lexer.emit(itemEQL);
+                } else if (Objects.nonNull(next) && next == '~') {
+                    return lexer.error("unexpected character after '=': %c", next);
+                } else {
+                    lexer.emit(itemAssign);
+                }
+
+                break;
+            }
+
+            case '!': {
+                Character next = lexer.next();
+                if (Objects.nonNull(next) && next == '=') {
+                    lexer.emit(itemNEQ);
+                } else {
+                    return lexer.error("unexpected character after '!': %c", next);
+                }
+
+                break;
+            }
+
+            case '<': {
+                Character ch = lexer.peek();
+                if (Objects.nonNull(ch) && ch == '=') {
+                    lexer.next();
+                    lexer.emit(itemLTE);
+                } else {
+                    lexer.emit(itemLSS);
+                }
+
+                break;
+            }
+
+            case '>': {
+                Character ch = lexer.next();
+                if (Objects.nonNull(ch) && ch == '=') {
+                    lexer.next();
+                    lexer.emit(itemGTE);
+                } else {
+                    lexer.emit(itemGTR);
+                }
+            }
+
             default: {
                 return lexer.error("unexpected character: %c", c);
             }

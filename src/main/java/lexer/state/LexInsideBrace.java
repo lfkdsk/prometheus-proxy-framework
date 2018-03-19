@@ -7,6 +7,8 @@ import java.util.Objects;
 import static java.lang.String.format;
 import static lexer.state.LexerStates.*;
 import static token.ItemType.*;
+import static utils.NumberUtils.isAlpha;
+import static utils.NumberUtils.isSpace;
 
 @StatesBinder(binder = LexInsideBrace)
 public class LexInsideBrace extends State{
@@ -19,9 +21,9 @@ public class LexInsideBrace extends State{
         Character ch = lexer.next();
         if (Objects.isNull(ch)) {
             return lexer.error("unexpected end of input inside braces");
-        } else if (Character.isWhitespace(ch)) {
+        } else if (isSpace(ch)) {
             return LexSpace;
-        } else if (Character.isAlphabetic(ch)) {
+        } else if (isAlpha(ch)) {
             return LexIdentifier;
         }
 
@@ -42,7 +44,7 @@ public class LexInsideBrace extends State{
             }
 
             case '=': {
-                Character next = lexer.peek();
+                Character next = lexer.next();
                 if (next == '~') {
                     // Regex
                     lexer.emit(itemEQLRegex);
@@ -50,11 +52,11 @@ public class LexInsideBrace extends State{
                 }
 
                 lexer.backup();
-                lexer.emit(itemEOF);
+                lexer.emit(itemEQL);
                 break;
             }
             case '!': {
-                Character next = lexer.peek();
+                Character next = lexer.next();
                 if (next == '~') {
                     lexer.emit(itemNEQRegex);
                 } else if (next == '=') {

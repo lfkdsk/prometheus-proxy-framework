@@ -1,11 +1,18 @@
 import lexer.Lexer;
+import lexer.state.LexStatements;
+import lexer.state.States;
 import org.junit.jupiter.api.Test;
 import token.ItemType;
 import token.TokenItem;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static token.ItemType.*;
 import static token.TokenItem.of;
 
 class LexerTest {
@@ -44,7 +51,7 @@ class LexerTest {
     void testComma() {
         TestItem.of(
                 ",",
-                TokenItem.of(ItemType.itemComma, 0, ",")
+                TokenItem.of(itemComma, 0, ",")
         ).test();
     }
 
@@ -60,8 +67,8 @@ class LexerTest {
     void testEmptyParen() {
         TestItem.of(
                 "()",
-                TokenItem.of(ItemType.itemLeftParen, 0, "("),
-                TokenItem.of(ItemType.itemRightParen, 1, ")")
+                TokenItem.of(itemLeftParen, 0, "("),
+                TokenItem.of(itemRightParen, 1, ")")
         ).test();
     }
 
@@ -69,8 +76,8 @@ class LexerTest {
     void testEmptyBrace() {
         TestItem.of(
                 "{}",
-                TokenItem.of(ItemType.itemLeftBrace, 0, "{"),
-                TokenItem.of(ItemType.itemRightBrace, 1, "}")
+                TokenItem.of(itemLeftBrace, 0, "{"),
+                TokenItem.of(itemRightBrace, 1, "}")
         ).test();
     }
 
@@ -78,9 +85,9 @@ class LexerTest {
     void testSimpleBracket() {
         TestItem.of(
                 "[5m]",
-                TokenItem.of(ItemType.itemLeftBracket, 0, "["),
-                TokenItem.of(ItemType.itemDuration, 1, "5m"),
-                TokenItem.of(ItemType.itemRightBracket, 3, "]")
+                TokenItem.of(itemLeftBracket, 0, "["),
+                TokenItem.of(itemDuration, 1, "5m"),
+                TokenItem.of(itemRightBracket, 3, "]")
         ).test();
     }
 
@@ -89,7 +96,7 @@ class LexerTest {
     void testSimpleNumber() {
         TestItem.of(
                 "1",
-                TokenItem.of(ItemType.itemNumber, 0, "1")
+                TokenItem.of(itemNumber, 0, "1")
         ).test();
     }
 
@@ -97,7 +104,7 @@ class LexerTest {
     void testSimpleNumber1() {
         TestItem.of(
                 "4.23",
-                TokenItem.of(ItemType.itemNumber, 0, "4.23")
+                TokenItem.of(itemNumber, 0, "4.23")
         ).test();
     }
 
@@ -105,7 +112,7 @@ class LexerTest {
     void testSimpleNumber2() {
         TestItem.of(
                 ".3",
-                TokenItem.of(ItemType.itemNumber, 0, ".3")
+                TokenItem.of(itemNumber, 0, ".3")
         ).test();
     }
 
@@ -113,7 +120,7 @@ class LexerTest {
     void testSimpleNumber3() {
         TestItem.of(
                 "5.",
-                TokenItem.of(ItemType.itemNumber, 0, "5.")
+                TokenItem.of(itemNumber, 0, "5.")
         ).test();
     }
 
@@ -121,12 +128,12 @@ class LexerTest {
     void testNaNNumber() {
         TestItem.of(
                 "NaN",
-                TokenItem.of(ItemType.itemNumber, 0, "NaN")
+                TokenItem.of(itemNumber, 0, "NaN")
         ).test();
 
         TestItem.of(
                 "naN",
-                TokenItem.of(ItemType.itemNumber, 0, "naN")
+                TokenItem.of(itemNumber, 0, "naN")
         ).test();
     }
 
@@ -134,30 +141,30 @@ class LexerTest {
     void testInfNumber() {
         TestItem.of(
                 "Inf",
-                TokenItem.of(ItemType.itemNumber, 0, "Inf")
+                TokenItem.of(itemNumber, 0, "Inf")
         ).test();
 
         TestItem.of(
                 "inF",
-                TokenItem.of(ItemType.itemNumber, 0, "inF")
+                TokenItem.of(itemNumber, 0, "inF")
         ).test();
 
         TestItem.of(
                 "+inF",
-                TokenItem.of(ItemType.itemADD, 0, "+"),
-                TokenItem.of(ItemType.itemNumber, 1, "inF")
+                TokenItem.of(itemADD, 0, "+"),
+                TokenItem.of(itemNumber, 1, "inF")
         ).test();
 
         TestItem.of(
                 "+inF 123",
-                TokenItem.of(ItemType.itemADD, 0, "+"),
-                TokenItem.of(ItemType.itemNumber, 1, "inF"),
-                TokenItem.of(ItemType.itemNumber, 5, "123")
+                TokenItem.of(itemADD, 0, "+"),
+                TokenItem.of(itemNumber, 1, "inF"),
+                TokenItem.of(itemNumber, 5, "123")
         ).test();
 
         TestItem.of(
                 "Infoo",
-                TokenItem.of(ItemType.itemIdentifier, 0, "Infoo")
+                TokenItem.of(itemIdentifier, 0, "Infoo")
         ).test();
     }
 
@@ -165,13 +172,13 @@ class LexerTest {
     void testMultiNumber() {
         TestItem.of(
                 "Nan 123",
-                TokenItem.of(ItemType.itemNumber, 0, "Nan"),
-                TokenItem.of(ItemType.itemNumber, 4, "123")
+                TokenItem.of(itemNumber, 0, "Nan"),
+                TokenItem.of(itemNumber, 4, "123")
         ).test();
 
         TestItem.of(
                 "0x123",
-                TokenItem.of(ItemType.itemNumber, 0, "0x123")
+                TokenItem.of(itemNumber, 0, "0x123")
         ).test();
     }
 
@@ -179,7 +186,7 @@ class LexerTest {
     void testIdentifier() {
         TestItem.of(
                 "NaN123",
-                TokenItem.of(ItemType.itemIdentifier, 0, "NaN123")
+                TokenItem.of(itemIdentifier, 0, "NaN123")
         ).test();
     }
 
@@ -187,7 +194,7 @@ class LexerTest {
     void testStrings() {
         TestItem.of(
                 "\"test\\tsequence\"",
-                TokenItem.of(ItemType.itemString, 0, "\"test\\tsequence\"")
+                TokenItem.of(itemString, 0, "\"test\\tsequence\"")
         ).test();
     }
 
@@ -195,13 +202,13 @@ class LexerTest {
     void testMultiStrings() {
         TestItem.of(
                 "\"test\\\\.expression\"",
-                TokenItem.of(ItemType.itemString, 0, "\"test\\\\.expression\"")
+                TokenItem.of(itemString, 0, "\"test\\\\.expression\"")
         ).test();
 
         TestItem.of(
                 "\"test\\.expression\"",
-                TokenItem.of(ItemType.itemError, 0, "unknown escape sequence '.'"),
-                TokenItem.of(ItemType.itemString, 0, "\"test\\.expression\"")
+                TokenItem.of(itemError, 0, "unknown escape sequence '.'"),
+                TokenItem.of(itemString, 0, "\"test\\.expression\"")
         ).test();
     }
 
@@ -209,7 +216,7 @@ class LexerTest {
     void testRawString() {
         TestItem.of(
                 "`test\\.expression`",
-                TokenItem.of(ItemType.itemString, 0, "`test\\.expression`")
+                TokenItem.of(itemString, 0, "`test\\.expression`")
         ).test();
     }
 
@@ -227,27 +234,27 @@ class LexerTest {
     void testDurations() {
         TestItem.of(
                 "5s",
-                TokenItem.of(ItemType.itemDuration, 0, "5s")
+                TokenItem.of(itemDuration, 0, "5s")
         ).test();
 
         TestItem.of(
                 "123m",
-                TokenItem.of(ItemType.itemDuration, 0, "123m")
+                TokenItem.of(itemDuration, 0, "123m")
         ).test();
 
         TestItem.of(
                 "1h",
-                TokenItem.of(ItemType.itemDuration, 0, "1h")
+                TokenItem.of(itemDuration, 0, "1h")
         ).test();
 
         TestItem.of(
                 "3w",
-                TokenItem.of(ItemType.itemDuration, 0, "3w")
+                TokenItem.of(itemDuration, 0, "3w")
         ).test();
 
         TestItem.of(
                 "1y",
-                TokenItem.of(ItemType.itemDuration, 0, "1y")
+                TokenItem.of(itemDuration, 0, "1y")
         ).test();
     }
 
@@ -256,13 +263,13 @@ class LexerTest {
     void testMoreIdentifier() {
         TestItem.of(
                 "abc",
-                TokenItem.of(ItemType.itemIdentifier, 0, "abc")
+                TokenItem.of(itemIdentifier, 0, "abc")
         ).test();
 
         TestItem.of(
                 "abc d",
-                TokenItem.of(ItemType.itemIdentifier, 0, "abc"),
-                TokenItem.of(ItemType.itemIdentifier, 4, "d")
+                TokenItem.of(itemIdentifier, 0, "abc"),
+                TokenItem.of(itemIdentifier, 4, "d")
         ).test();
     }
 
@@ -270,12 +277,267 @@ class LexerTest {
     void testMetricIdentifier() {
         TestItem.of(
                 "a:bc",
-                TokenItem.of(ItemType.itemMetricIdentifier, 0, "a:bc")
+                TokenItem.of(itemMetricIdentifier, 0, "a:bc")
         ).test();
 
         TestItem.of(
                 ":bc",
-                TokenItem.of(ItemType.itemMetricIdentifier, 0, ":bc")
+                TokenItem.of(itemMetricIdentifier, 0, ":bc")
+        ).test();
+
+        TestItem.of(
+                "0a:bc",
+                true
+        ).test();
+    }
+
+    // test comments
+    @Test
+    void testComments() {
+        TestItem.of(
+                "# some comment",
+                TokenItem.of(itemComment, 0, "# some comment")
+        ).test();
+
+        TestItem.of(
+                "5 # 1+1\n5",
+                TokenItem.of(itemNumber, 0, "5"),
+                TokenItem.of(itemComment, 2, "# 1+1"),
+                TokenItem.of(itemNumber, 8, "5")
+        ).test();
+    }
+
+    // test operators
+    @Test
+    void testOperators() {
+        TestItem.of(
+                "=",
+                TokenItem.of(itemAssign, 0, "=")
+        ).test();
+
+        // Inside braces equality is a single '=' character.
+        TestItem.of(
+                "{=}",
+                TokenItem.of(itemLeftBrace, 0, "{"),
+                TokenItem.of(itemEQL, 1, "="),
+                TokenItem.of(itemRightBrace, 2, "}")
+        ).test();
+
+        TestItem.of(
+                "==",
+                TokenItem.of(itemEQL, 0, "==")
+        ).test();
+
+        TestItem.of(
+                "!=",
+                TokenItem.of(itemNEQ, 0, "!=")
+        ).test();
+
+
+        TestItem.of(
+                "<",
+                TokenItem.of(itemLSS, 0, "<")
+        ).test();
+
+        TestItem.of(
+                ">",
+                TokenItem.of(itemGTR, 0, ">")
+        ).test();
+
+        TestItem.of(
+                ">=",
+                TokenItem.of(itemGTE, 0, ">=")
+        ).test();
+
+        TestItem.of(
+                "<=",
+                TokenItem.of(itemLTE, 0, "<=")
+        ).test();
+
+
+        TestItem.of(
+                "+",
+                TokenItem.of(itemADD, 0, "+")
+        ).test();
+
+        TestItem.of(
+                "-",
+                TokenItem.of(itemSUB, 0, "-")
+        ).test();
+
+        TestItem.of(
+                "*",
+                TokenItem.of(itemMUL, 0, "*")
+        ).test();
+
+        TestItem.of(
+                "/",
+                TokenItem.of(itemDIV, 0, "/")
+        ).test();
+
+        TestItem.of(
+                "^",
+                TokenItem.of(itemPOW, 0, "^")
+        ).test();
+
+        TestItem.of(
+                "%",
+                TokenItem.of(itemMOD, 0, "%")
+        ).test();
+    }
+
+    // and or ....
+    @Test
+    void testJoinOp() {
+        TestItem.of(
+                "AND",
+                TokenItem.of(itemLAND, 0, "AND")
+        ).test();
+
+        TestItem.of(
+                "or",
+                TokenItem.of(itemLOR, 0, "or")
+        ).test();
+
+        TestItem.of(
+                "unless",
+                TokenItem.of(itemLUnless, 0, "unless")
+        ).test();
+    }
+
+    @Test
+    void testAggsAndKeyWord() {
+        States.keywordsMap
+                .entrySet()
+                .stream()
+                .filter(Objects::nonNull)
+                .forEach(entry ->
+                        TestItem.of(
+                                entry.getKey(),
+                                TokenItem.of(entry.getValue(), 0, entry.getKey())
+                        ).test()
+                );
+    }
+
+    // Test common errors.
+    @Test
+    void testCommonError() {
+        List<String> errors = Arrays.asList(
+                "=~", "!~", "!(", "1a"
+        );
+
+        errors.forEach(error -> TestItem.of(error, true).test());
+    }
+
+    // Test mismatched parens.
+    @Test
+    void testMisMatchedParens() {
+        List<String> errors = Arrays.asList(
+                "(", "())", "(()", "{", "}", "{{", "{{}}", "[", "[[", "[]]", "[[]]", "]"
+        );
+
+        errors.forEach(error -> TestItem.of(error, true).test());
+    }
+
+    // Test encoding issues.
+    @Test
+    void testEncodingIssues() {
+        List<String> errors = Collections.singletonList(
+                "\"\\xff\"" // another test cannot write in java
+        );
+
+        errors.forEach(error -> TestItem.of(error, true).test());
+    }
+
+    // Test Selector.
+    @Test
+    void testErrorSelector() {
+        // errors
+        List<String> errors = Arrays.asList(
+                "北京", "{北京='a'}", "{0a='a'}",
+                "{alert!#\"bar\"}", "{foo:a=\"bar\"}"
+        );
+
+        errors.forEach(error -> TestItem.of(error, true).test());
+    }
+
+    @Test
+    void testSelector() {
+        TestItem.of(
+                "{foo='bar'}",
+                TokenItem.of(itemLeftBrace, 0, "{"),
+                TokenItem.of(itemIdentifier, 1, "foo"),
+                TokenItem.of(itemEQL, 4, "="),
+                TokenItem.of(itemString, 5, "'bar'"),
+                TokenItem.of(itemRightBrace, 10, "}")
+        ).test();
+
+        TestItem.of(
+                "{foo=\"bar\"}",
+                TokenItem.of(itemLeftBrace, 0, "{"),
+                TokenItem.of(itemIdentifier, 1, "foo"),
+                TokenItem.of(itemEQL, 4, "="),
+                TokenItem.of(itemString, 5, "\"bar\""),
+                TokenItem.of(itemRightBrace, 10, "}")
+        ).test();
+
+        TestItem.of(
+                "{foo=\"bar\\\"bar\"}",
+                TokenItem.of(itemLeftBrace, 0, "{"),
+                TokenItem.of(itemIdentifier, 1, "foo"),
+                TokenItem.of(itemEQL, 4, "="),
+                TokenItem.of(itemString, 5, "\"bar\\\"bar\""),
+                TokenItem.of(itemRightBrace, 15, "}")
+        ).test();
+
+        TestItem.of(
+                "{NaN\t!= \"bar\" }",
+                TokenItem.of(itemLeftBrace, 0, "{"),
+                TokenItem.of(itemIdentifier, 1, "NaN"),
+                TokenItem.of(itemNEQ, 5, "!="),
+                TokenItem.of(itemString, 8, "\"bar\""),
+                TokenItem.of(itemRightBrace, 14, "}")
+        ).test();
+
+        TestItem.of(
+                "{alert=~\"bar\" }",
+                TokenItem.of(itemLeftBrace, 0, "{"),
+                TokenItem.of(itemIdentifier, 1, "alert"),
+                TokenItem.of(itemEQLRegex, 6, "=~"),
+                TokenItem.of(itemString, 8, "\"bar\""),
+                TokenItem.of(itemRightBrace, 14, "}")
+        ).test();
+
+        TestItem.of(
+                "{on!~\"bar\"}",
+                TokenItem.of(itemLeftBrace, 0, "{"),
+                TokenItem.of(itemIdentifier, 1, "on"),
+                TokenItem.of(itemNEQRegex, 3, "!~"),
+                TokenItem.of(itemString, 5, "\"bar\""),
+                TokenItem.of(itemRightBrace, 10, "}")
+        ).test();
+    }
+
+    // Test series description.
+    @Test
+    void testSeriesDesc() {
+        // {itemLeftBrace, 0, `{`},
+        // {itemRightBrace, 1, `}`},
+        // {itemBlank, 3, `_`},
+        // {itemNumber, 5, `1`},
+        // {itemTimes, 7, `x`},
+        // {itemNumber, 9, `.3`},
+
+        TestItem.of(
+                "{} _ 1 x .3",
+                false,
+                true,
+                TokenItem.of(itemLeftBrace, 0, "{"),
+                TokenItem.of(itemRightBrace, 1, "}"),
+                TokenItem.of(itemBlank, 3, "_"),
+                TokenItem.of(itemNumber, 5, "1"),
+                TokenItem.of(itemTimes, 7, "x"),
+                TokenItem.of(itemNumber, 9, ".3")
         ).test();
     }
 
@@ -283,22 +545,23 @@ class LexerTest {
         Lexer lexer = new Lexer(testItem.input);
         lexer.run();
 
-        // EOF symbol
-        assertEquals(testItem.expected.length + 1, lexer.getItems().size());
-
         TokenItem lastItem = lexer.getItems().get(lexer.getItems().size() - 1);
         if (testItem.fail) {
-            if (lastItem.type != ItemType.itemError) {
-                System.err.printf("input %s", testItem.input);
-                System.err.printf("expected lexing error but did not fail");
+            if (lastItem.type != itemError) {
+                System.err.printf("input %s \n", testItem.input);
+                System.err.printf("expected lexing error but did not fail \n");
             }
+            assertTrue(lastItem.type == itemError);
             return;
         }
 
-        if (lastItem.type == ItemType.itemError) {
-            System.err.printf("input %s", testItem.input);
-            System.err.printf("unexpected lexing error at position %d: %s", lastItem.position, lastItem.text);
+        if (lastItem.type == itemError) {
+            System.err.printf("input %s \n", testItem.input);
+            System.err.printf("unexpected lexing error at position %d: %s \n", lastItem.position, lastItem.text);
         }
+
+        // EOF symbol
+        assertEquals(testItem.expected.length + 1, lexer.getItems().size());
 
         for (int i = 0; i < testItem.expected.length; i++) {
             TokenItem item = lexer.getItems().get(i);

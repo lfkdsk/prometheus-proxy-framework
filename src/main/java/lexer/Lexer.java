@@ -23,8 +23,13 @@ public class Lexer {
     private final String input;
     private final LineNumberReader reader;
     private State state;
+
+    @Getter
+    @Setter
     private int position;
+
     private int start;
+
     private int lastPostion;
 
     @Getter
@@ -152,7 +157,7 @@ public class Lexer {
     }
 
     public LexerStates error(String format, Object ... args) {
-        System.err.printf(format, args);
+        System.err.printf(format + '\n', args);
         this.items.add(TokenItem.of(ItemType.itemError, start, format(format, args)));
         return null;
     }
