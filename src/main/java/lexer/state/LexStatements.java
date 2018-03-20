@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 
 import java.util.Objects;
 
@@ -14,7 +14,7 @@ import static utils.NumberUtils.isDigit;
 public class LexStatements extends State {
 
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
         if (lexer.isBraceOpen()) {
             return LexInsideBrace;
         }
@@ -181,6 +181,8 @@ public class LexStatements extends State {
                 } else {
                     lexer.emit(itemGTR);
                 }
+
+                break;
             }
 
             default: {

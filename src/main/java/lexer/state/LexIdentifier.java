@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 import token.ItemType;
 
 import static utils.NumberUtils.isAlphaNumeric;
@@ -10,7 +10,7 @@ public class LexIdentifier extends State {
     // lexIdentifier scans an alphanumeric identifier. The next character
     // is known to be a letter.
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
         for (;isAlphaNumeric(lexer.next()););
         lexer.backup();
         lexer.emit(ItemType.itemIdentifier);

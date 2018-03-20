@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Objects;
 @StatesBinder(binder = LexerStates.LexEscape)
 public class LexEscape extends State {
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
         Character ch = lexer.next();
 
         if (Objects.isNull(ch)) {

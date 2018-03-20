@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 import token.ItemType;
 
 import java.util.Objects;
@@ -9,7 +9,7 @@ import java.util.Objects;
 public class LexRawString extends State {
 
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
 
         for (; ; ) {
             Character ch = lexer.next();

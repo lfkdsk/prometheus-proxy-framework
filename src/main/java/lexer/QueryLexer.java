@@ -8,8 +8,6 @@ import lombok.Setter;
 import token.ItemType;
 import token.TokenItem;
 
-import java.io.LineNumberReader;
-import java.io.StringReader;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,10 +16,9 @@ import static lexer.state.LexerStates.LexStatements;
 import static lexer.state.States.statementsMap;
 import static utils.NumberUtils.isAlphaNumeric;
 
-public class Lexer {
+public class QueryLexer {
     @Getter
     private final String input;
-    private final LineNumberReader reader;
     private State state;
 
     @Getter
@@ -59,9 +56,8 @@ public class Lexer {
     @Getter
     private List<TokenItem> items;
 
-    public Lexer(String input) {
+    public QueryLexer(String input) {
         this.input = input;
-        this.reader = new LineNumberReader(new StringReader(input));
         this.items = Lists.newLinkedList();
         this.state = statementsMap.get(LexStatements);
     }
@@ -168,7 +164,7 @@ public class Lexer {
         }
     }
 
-    public static Lexer lexer(String input) {
-        return new Lexer(input);
+    public static QueryLexer lexer(String input) {
+        return new QueryLexer(input);
     }
 }

@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 
 import static java.lang.String.format;
 import static lexer.state.LexerStates.*;
@@ -11,7 +11,7 @@ import static utils.NumberUtils.isAlphaNumeric;
 public class LexNumberOrDuration extends State {
 
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
         if (lexer.scanNumber()) {
             lexer.emit(itemNumber);
             return LexStatements;

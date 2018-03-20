@@ -1,5 +1,5 @@
 package lexer.state;
-import lexer.Lexer;
+import lexer.QueryLexer;
 
 import static lexer.state.LexerStates.*;
 import static token.ItemType.itemNumber;
@@ -8,7 +8,7 @@ import static token.ItemType.itemNumber;
 public class LexNumber extends State {
 
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
         if (!lexer.scanNumber()) {
             return lexer.error("bad number syntax: %q", lexer.current());
         }

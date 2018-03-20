@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 import token.ItemType;
 
 import java.util.Objects;
@@ -15,7 +15,7 @@ import static utils.NumberUtils.isSpace;
 public class LexValueSequence extends State {
 
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
         Character ch = lexer.next();
         if (Objects.isNull(ch)) {
             return LexStatements;

@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 
 import static lexer.state.LexerStates.LexSpace;
 import static lexer.state.LexerStates.LexStatements;
@@ -11,7 +11,7 @@ public class LexSpace extends State {
 
 
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
         for (;isSpace(lexer.peek());) {
             lexer.next();
         }

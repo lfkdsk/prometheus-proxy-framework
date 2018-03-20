@@ -1,22 +1,19 @@
-import lexer.Lexer;
-import lexer.state.LexStatements;
+import lexer.QueryLexer;
 import lexer.state.States;
 import org.junit.jupiter.api.Test;
-import token.ItemType;
 import token.TokenItem;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static token.ItemType.*;
-import static token.TokenItem.of;
 
 class LexerTest {
-    static class TestItem {
+    static final class TestItem {
         String input;
         TokenItem[] expected;
         boolean fail;
@@ -29,19 +26,19 @@ class LexerTest {
             this.seriesDesc = seriesDesc;
         }
 
-        public static TestItem of(String input, boolean fail, boolean seriesDesc, TokenItem... expected) {
+        static TestItem of(String input, boolean fail, boolean seriesDesc, TokenItem... expected) {
             return new TestItem(input, fail, seriesDesc, expected);
         }
 
-        public static TestItem of(String input, boolean fail, TokenItem... expected) {
+        static TestItem of(String input, boolean fail, TokenItem... expected) {
             return new TestItem(input, fail, false, expected);
         }
 
-        public static TestItem of(String input, TokenItem... expected) {
+        static TestItem of(String input, TokenItem... expected) {
             return new TestItem(input, false, false, expected);
         }
 
-        public void test() {
+        void test() {
             testLexer(this);
         }
     }
@@ -565,7 +562,7 @@ class LexerTest {
     }
 
     static void testLexer(TestItem testItem) {
-        Lexer lexer = new Lexer(testItem.input);
+        QueryLexer lexer = new QueryLexer(testItem.input);
         lexer.setSeriesDesc(testItem.seriesDesc);
         lexer.run();
 
@@ -573,15 +570,16 @@ class LexerTest {
         if (testItem.fail) {
             if (lastItem.type != itemError) {
                 System.err.printf("input %s \n", testItem.input);
-                System.err.printf("expected lexing error but did not fail \n");
+                System.err.println("expected lexing error but did not fail");
+                throw new RuntimeException("exception in fail tests");
             }
-            assertTrue(lastItem.type == itemError);
             return;
         }
 
         if (lastItem.type == itemError) {
             System.err.printf("input %s \n", testItem.input);
             System.err.printf("unexpected lexing error at position %d: %s \n", lastItem.position, lastItem.text);
+            throw new RuntimeException("exception in tests' error");
         }
 
         // EOF symbol

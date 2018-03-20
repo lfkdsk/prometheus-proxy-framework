@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 import lombok.Getter;
 
 public abstract class State {
@@ -17,5 +17,5 @@ public abstract class State {
         this.lexerStates = binder.binder();
     }
 
-    abstract public LexerStates nextTo(Lexer lexer);
+    abstract public LexerStates nextTo(QueryLexer lexer);
 }

@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 import token.ItemType;
 
 import java.util.Objects;
@@ -13,7 +13,7 @@ import static utils.NumberUtils.isAlphaNumeric;
 public class LexKeywordOrIdentifier extends State {
 
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
         for (; ; ) {
             Character ch = lexer.next();
             if (Objects.nonNull(ch) && (isAlphaNumeric(ch) || ch == ':')) {

@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 import token.ItemType;
 
 import java.util.Objects;
@@ -11,7 +11,7 @@ import static utils.NumberUtils.isEndOfLine;
 public class LexLineComment extends State {
 
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
         lexer.setPosition(lexer.getPosition() + "#".length());
         for (Character ch = lexer.next();
              Objects.nonNull(ch) && !isEndOfLine(ch);

@@ -1,6 +1,6 @@
 package lexer.state;
 
-import lexer.Lexer;
+import lexer.QueryLexer;
 
 import static java.lang.String.format;
 import static token.ItemType.itemDuration;
@@ -11,7 +11,7 @@ import static lexer.state.LexerStates.*;
 public class LexDuration extends State {
 
     @Override
-    public LexerStates nextTo(Lexer lexer) {
+    public LexerStates nextTo(QueryLexer lexer) {
         if (lexer.scanNumber()) {
             return lexer.error("missing unit character in duration");
         }
