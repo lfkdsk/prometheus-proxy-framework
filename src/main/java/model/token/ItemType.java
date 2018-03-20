@@ -1,4 +1,4 @@
-package token;
+package model.token;
 
 import lombok.Getter;
 

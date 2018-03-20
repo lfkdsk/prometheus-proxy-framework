@@ -6,9 +6,9 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 import static lexer.state.LexerStates.*;
-import static token.ItemType.*;
-import static utils.NumberUtils.isAlpha;
-import static utils.NumberUtils.isDigit;
+import static model.token.ItemType.*;
+import static utils.TypeUtils.isAlpha;
+import static utils.TypeUtils.isDigit;
 
 @StatesBinder(binder = LexStatements)
 public class LexStatements extends State {

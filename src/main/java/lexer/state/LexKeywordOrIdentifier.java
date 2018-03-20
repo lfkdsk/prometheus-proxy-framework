@@ -1,13 +1,13 @@
 package lexer.state;
 
 import lexer.QueryLexer;
-import token.ItemType;
+import model.token.ItemType;
 
 import java.util.Objects;
 
 import static lexer.state.LexerStates.*;
 import static lexer.state.States.keywordsMap;
-import static utils.NumberUtils.isAlphaNumeric;
+import static utils.TypeUtils.isAlphaNumeric;
 
 @StatesBinder(binder = LexKeywordOrIdentifier)
 public class LexKeywordOrIdentifier extends State {

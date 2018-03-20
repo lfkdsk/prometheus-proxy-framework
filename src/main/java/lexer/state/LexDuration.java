@@ -3,8 +3,8 @@ package lexer.state;
 import lexer.QueryLexer;
 
 import static java.lang.String.format;
-import static token.ItemType.itemDuration;
-import static utils.NumberUtils.isAlphaNumeric;
+import static model.token.ItemType.itemDuration;
+import static utils.TypeUtils.isAlphaNumeric;
 import static lexer.state.LexerStates.*;
 
 @StatesBinder(binder = LexDuration)

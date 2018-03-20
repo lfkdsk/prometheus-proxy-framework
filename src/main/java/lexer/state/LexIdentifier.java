@@ -1,9 +1,9 @@
 package lexer.state;
 
 import lexer.QueryLexer;
-import token.ItemType;
+import model.token.ItemType;
 
-import static utils.NumberUtils.isAlphaNumeric;
+import static utils.TypeUtils.isAlphaNumeric;
 
 @StatesBinder(binder = LexerStates.LexIdentifier)
 public class LexIdentifier extends State {

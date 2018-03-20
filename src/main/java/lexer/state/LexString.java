@@ -1,7 +1,7 @@
 package lexer.state;
 
 import lexer.QueryLexer;
-import token.ItemType;
+import model.token.ItemType;
 
 import java.util.Objects;
 

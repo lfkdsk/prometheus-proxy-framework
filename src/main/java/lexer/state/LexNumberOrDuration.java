@@ -4,8 +4,8 @@ import lexer.QueryLexer;
 
 import static java.lang.String.format;
 import static lexer.state.LexerStates.*;
-import static token.ItemType.*;
-import static utils.NumberUtils.isAlphaNumeric;
+import static model.token.ItemType.*;
+import static utils.TypeUtils.isAlphaNumeric;
 
 @StatesBinder(binder = LexNumberOrDuration)
 public class LexNumberOrDuration extends State {

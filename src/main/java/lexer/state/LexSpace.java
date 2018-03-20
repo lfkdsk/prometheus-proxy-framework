@@ -4,7 +4,7 @@ import lexer.QueryLexer;
 
 import static lexer.state.LexerStates.LexSpace;
 import static lexer.state.LexerStates.LexStatements;
-import static utils.NumberUtils.isSpace;
+import static utils.TypeUtils.isSpace;
 
 @StatesBinder(binder = LexSpace)
 public class LexSpace extends State {

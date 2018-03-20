@@ -5,8 +5,8 @@ import lexer.state.LexerStates;
 import lexer.state.State;
 import lombok.Getter;
 import lombok.Setter;
-import token.ItemType;
-import token.TokenItem;
+import model.token.ItemType;
+import model.token.TokenItem;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,9 +14,9 @@ import java.util.Objects;
 import static java.lang.String.format;
 import static lexer.state.LexerStates.LexStatements;
 import static lexer.state.States.statementsMap;
-import static utils.NumberUtils.isAlphaNumeric;
+import static utils.TypeUtils.isAlphaNumeric;
 
-public class QueryLexer {
+public final class QueryLexer {
     @Getter
     private final String input;
     private State state;
@@ -145,6 +145,7 @@ public class QueryLexer {
             return true;
         }
 
+        // next char in world
         if ((this.isSeriesDesc() && ch == 'x') || !isAlphaNumeric(ch)) {
             return true;
         }

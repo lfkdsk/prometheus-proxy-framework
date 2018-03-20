@@ -2,7 +2,7 @@ package lexer.state;
 import lexer.QueryLexer;
 
 import static lexer.state.LexerStates.*;
-import static token.ItemType.itemNumber;
+import static model.token.ItemType.itemNumber;
 
 @StatesBinder(binder = LexNumber)
 public class LexNumber extends State {

@@ -1,5 +1,5 @@
 package parser;
 
-public class Parser {
+public final class Parser {
     
 }

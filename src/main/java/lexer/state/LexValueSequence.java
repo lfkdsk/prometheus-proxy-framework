@@ -1,15 +1,15 @@
 package lexer.state;
 
 import lexer.QueryLexer;
-import token.ItemType;
+import model.token.ItemType;
 
 import java.util.Objects;
 
 import static lexer.state.LexerStates.*;
 import static lexer.state.States.statementsMap;
-import static utils.NumberUtils.isAlpha;
-import static utils.NumberUtils.isDigit;
-import static utils.NumberUtils.isSpace;
+import static utils.TypeUtils.isAlpha;
+import static utils.TypeUtils.isDigit;
+import static utils.TypeUtils.isSpace;
 
 @StatesBinder(binder = LexValueSequence)
 public class LexValueSequence extends State {

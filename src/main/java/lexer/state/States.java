@@ -1,12 +1,9 @@
 package lexer.state;
 
 import com.google.common.collect.Maps;
-import token.ItemType;
+import model.token.ItemType;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 public final class States {

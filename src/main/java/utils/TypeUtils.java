@@ -2,8 +2,8 @@ package utils;
 
 import java.util.Objects;
 
-public final class NumberUtils {
-    private NumberUtils() throws IllegalAccessException {
+public final class TypeUtils {
+    private TypeUtils() throws IllegalAccessException {
         throw new IllegalAccessException("illegal constructor");
     }
 
