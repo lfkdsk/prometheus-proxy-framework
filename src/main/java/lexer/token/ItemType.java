@@ -1,4 +1,4 @@
-package model.token;
+package lexer.token;
 
 import lombok.Getter;
 
@@ -98,4 +98,9 @@ public enum ItemType {
             this.text = text;
         }
     }
+
+    public static boolean isOperator(ItemType type) {
+        return type.compareTo(operatorsStart) > 0 && type.compareTo(operatorsEnd) < 0;
+    }
+
 }

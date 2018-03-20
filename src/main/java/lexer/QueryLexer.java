@@ -1,19 +1,22 @@
 package lexer;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import lexer.state.LexerStates;
 import lexer.state.State;
 import lombok.Getter;
 import lombok.Setter;
-import model.token.ItemType;
-import model.token.TokenItem;
+import lexer.token.ItemType;
+import lexer.token.TokenItem;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
 import static java.lang.String.format;
 import static lexer.state.LexerStates.LexStatements;
 import static lexer.state.States.statementsMap;
+import static utils.TypeUtils.count;
 import static utils.TypeUtils.isAlphaNumeric;
 
 public final class QueryLexer {
@@ -54,7 +57,7 @@ public final class QueryLexer {
     private Character currentChar;
 
     @Getter
-    private List<TokenItem> items;
+    private LinkedList<TokenItem> items;
 
     public QueryLexer(String input) {
         this.input = input;
@@ -109,7 +112,7 @@ public final class QueryLexer {
     }
 
     public void acceptRun(String valid) {
-        for (;valid.contains(String.valueOf(next())););
+        for (; valid.contains(String.valueOf(next())); ) ;
 
         this.backup();
     }
@@ -120,6 +123,10 @@ public final class QueryLexer {
 
     public String current() {
         return input.substring(this.start, this.position);
+    }
+
+    public String fromLastPosition() {
+        return input.substring(this.lastPostion);
     }
 
     public boolean scanNumber() {
@@ -153,19 +160,32 @@ public final class QueryLexer {
         return false;
     }
 
-    public LexerStates error(String format, Object ... args) {
+    public LexerStates error(String format, Object... args) {
         System.err.printf(format + '\n', args);
         this.items.add(TokenItem.of(ItemType.itemError, start, format(format, args)));
         return null;
     }
 
-    public void run() {
+    public TokenItem nextItem() {
+        TokenItem item = items.pollFirst();
+        // next pos
+        this.lastPostion = item.position;
+        return item;
+    }
+
+    public int lineNumber() {
+        return (int) (1 + count(input.substring(0 , lastPostion), '\n'));
+    }
+
+    public QueryLexer run() {
         for (state = statementsMap.get(LexStatements); state != null; ) {
             state = statementsMap.get(state.nextTo(this));
         }
+
+        return this;
     }
 
     public static QueryLexer lexer(String input) {
-        return new QueryLexer(input);
+        return new QueryLexer(input).run();
     }
 }

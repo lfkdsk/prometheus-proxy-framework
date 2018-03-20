@@ -2,7 +2,7 @@ package lexer;
 
 import lexer.state.States;
 import org.junit.jupiter.api.Test;
-import model.token.TokenItem;
+import lexer.token.TokenItem;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,7 +11,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static model.token.ItemType.*;
+import static lexer.token.ItemType.*;
 
 class LexerTest {
     static final class TestItem {

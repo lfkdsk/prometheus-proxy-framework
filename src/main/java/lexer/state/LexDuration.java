@@ -3,7 +3,7 @@ package lexer.state;
 import lexer.QueryLexer;
 
 import static java.lang.String.format;
-import static model.token.ItemType.itemDuration;
+import static lexer.token.ItemType.itemDuration;
 import static utils.TypeUtils.isAlphaNumeric;
 import static lexer.state.LexerStates.*;
 

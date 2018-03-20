@@ -6,7 +6,7 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 import static lexer.state.LexerStates.*;
-import static model.token.ItemType.*;
+import static lexer.token.ItemType.*;
 import static utils.TypeUtils.isAlpha;
 import static utils.TypeUtils.isSpace;
 

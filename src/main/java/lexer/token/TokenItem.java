@@ -1,4 +1,4 @@
-package model.token;
+package lexer.token;
 
 import org.jetbrains.annotations.NotNull;
 

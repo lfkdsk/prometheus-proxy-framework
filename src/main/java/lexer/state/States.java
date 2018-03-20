@@ -1,7 +1,7 @@
 package lexer.state;
 
 import com.google.common.collect.Maps;
-import model.token.ItemType;
+import lexer.token.ItemType;
 
 import java.util.*;
 import java.util.stream.Stream;

@@ -4,7 +4,7 @@ import lexer.QueryLexer;
 
 import static java.lang.String.format;
 import static lexer.state.LexerStates.*;
-import static model.token.ItemType.*;
+import static lexer.token.ItemType.*;
 import static utils.TypeUtils.isAlphaNumeric;
 
 @StatesBinder(binder = LexNumberOrDuration)

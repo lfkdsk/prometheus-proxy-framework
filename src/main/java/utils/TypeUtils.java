@@ -1,6 +1,12 @@
 package utils;
 
+import com.google.common.collect.Lists;
+
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 public final class TypeUtils {
     private TypeUtils() throws IllegalAccessException {
@@ -42,5 +48,12 @@ public final class TypeUtils {
      */
     public static boolean isAlphaNumeric(Character r) {
         return Objects.nonNull(r) && (isAlpha(r) || isDigit(r));
+    }
+
+    public static long count(String text, char search) {
+        return text.chars()
+                   .mapToObj(c -> (char) c)
+                   .filter(c -> c == search)
+                   .count();
     }
 }
