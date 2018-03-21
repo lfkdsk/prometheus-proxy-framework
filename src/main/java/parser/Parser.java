@@ -1,6 +1,5 @@
 package parser;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import exception.ParserException;
 import lexer.QueryLexer;
@@ -16,7 +15,6 @@ import parser.ast.value.VectorSelector;
 import parser.match.Matcher;
 
 import java.util.List;
-import java.util.Objects;
 
 import static java.lang.String.format;
 import static lexer.token.ItemType.*;
@@ -88,15 +86,15 @@ public final class Parser {
                 continue;
             }
 
-            //            if (expr != null) {
-            //                this.errorf("could not parse remaining input $.15s...", lexer.fromLastPosition());
-            //            }
+            if (expr != null) {
+                this.errorf("could not parse remaining input \"%s\"...", lexer.fromLastPosition());
+            }
 
             expr = expr();
 
-            if (Objects.nonNull(expr)) {
-                break;
-            }
+//            if (Objects.nonNull(expr)) {
+//                break;
+//            }
         }
 
         if (expr == null) {
@@ -247,6 +245,10 @@ public final class Parser {
                 }
             case itemMetricIdentifier:
                 return VectorSelector(item.text);
+            default: {
+                errorf("no valid expression found");
+                break;
+            }
         }
 
         return null;
@@ -332,6 +334,17 @@ public final class Parser {
                 name,
                 matchers
         );
+    }
+
+    public void typeCheck(Expr expr) {
+        checkType(expr);
+    }
+
+    public void checkType(Expr expr) {
+        switch (expr.exprType) {
+            // TODO case Statements, Expressions, Statement
+            case ParenExpr:
+        }
     }
 
     public static Parser parser(String input) {

@@ -3,6 +3,9 @@ package parser.ast.literal;
 import parser.ast.Expr;
 import parser.ast.ExprBinder;
 import parser.ast.ExprType;
+import parser.ast.value.ValueType;
+
+import static parser.ast.value.ValueType.ValueTypeScalar;
 
 @ExprBinder(type = ExprType.NumberLiteral)
 public class NumberLiteral extends Expr {
@@ -36,5 +39,10 @@ public class NumberLiteral extends Expr {
         // check number && hashcode
         return hashCode() == other.hashCode()
                 && Double.valueOf(number).equals(other.number);
+    }
+
+    @Override
+    public ValueType valueType() {
+        return ValueTypeScalar;
     }
 }

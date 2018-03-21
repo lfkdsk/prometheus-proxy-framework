@@ -1,7 +1,9 @@
 package parser.ast;
 
+import parser.ast.value.ValueType;
+
 public abstract class Expr {
-    public final ExprType type;
+    public final ExprType exprType;
 
     public Expr() {
         ExprBinder binder = this.getClass().getAnnotation(ExprBinder.class);
@@ -10,6 +12,8 @@ public abstract class Expr {
             throw new IllegalArgumentException("Expr should bind to an ExprType annotation");
         }
 
-        type = binder.type();
+        exprType = binder.type();
     }
+
+    public abstract ValueType valueType();
 }

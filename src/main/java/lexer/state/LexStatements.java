@@ -186,7 +186,7 @@ public class LexStatements extends State {
             }
 
             default: {
-                return lexer.error("unexpected character: %c", c);
+                return lexer.error("unexpected character: '%c'", c);
             }
         }
 

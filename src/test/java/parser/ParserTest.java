@@ -332,6 +332,94 @@ class ParserTest {
                 true,
                 "no expression found in input"
         ).test();
+
+        TestItem.of(
+                "# just a comment\\n\\n",
+                true,
+                "no expression found in input"
+        ).test();
+
+        TestItem.of(
+                "1+",
+                true,
+                "no valid expression found"
+        ).test();
+    }
+
+    @Test
+    void testErrorMsg1() {
+        TestItem.of(
+                ".",
+                true,
+                "unexpected character: '.'"
+        ).test();
+
+        TestItem.of(
+                "2.5.",
+                true,
+                "could not parse remaining input \".\"..."
+        ).test();
+
+
+        TestItem.of(
+                "100..4",
+                true,
+                "could not parse remaining input \".4\"..."
+        ).test();
+
+        TestItem.of(
+                "0deadbeef",
+                true,
+                "bad number or duration syntax: \"0de\""
+        ).test();
+    }
+
+    @Test
+    void testMultiErrors() {
+        TestItem.of(
+                "1 /",
+                true,
+                "no valid expression found"
+        ).test();
+
+        TestItem.of(
+                "*1",
+                true,
+                "no valid expression found"
+        ).test();
+
+        TestItem.of(
+                "(1))",
+                true,
+                "could not parse remaining input \")\"..."
+        ).test();
+
+        TestItem.of(
+                "((1)",
+                true,
+                "unclosed left parenthesis"
+        ).test();
+
+        TestItem.of(
+                "999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+                // in promql error msg is "out of range"
+                NumberLiteral.of(Double.POSITIVE_INFINITY)
+        ).test();
+    }
+
+    @Test
+    void testErrorMsg2() {
+        TestItem.of(
+                "(",
+                true,
+                "unclosed left parenthesis"
+        ).test();
+
+        TestItem.of(
+                "1 and 1",
+                true,
+                "set operator \"and\" not allowed in binary scalar expression"
+        ).test();
     }
 
     static void testParser(TestItem test) {

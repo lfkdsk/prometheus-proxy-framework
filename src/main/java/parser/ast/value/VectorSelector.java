@@ -59,4 +59,9 @@ public class VectorSelector extends Expr {
     public static VectorSelector of(String name, Matcher... matchers) {
         return new VectorSelector(name, Arrays.asList(matchers));
     }
+
+    @Override
+    public ValueType valueType() {
+        return ValueType.ValueTypeVector;
+    }
 }

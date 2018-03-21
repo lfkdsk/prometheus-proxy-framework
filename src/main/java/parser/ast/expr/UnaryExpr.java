@@ -4,13 +4,14 @@ import lexer.token.ItemType;
 import parser.ast.Expr;
 import parser.ast.ExprBinder;
 import parser.ast.ExprType;
+import parser.ast.value.ValueType;
 
 import java.util.Objects;
 
 import static java.lang.String.format;
 
 @ExprBinder(type = ExprType.UnaryExpr)
-public class UnaryExpr extends Expr{
+public class UnaryExpr extends Expr {
     public ItemType op;
     public Expr expr;
 
@@ -37,6 +38,11 @@ public class UnaryExpr extends Expr{
 
         UnaryExpr other = (UnaryExpr) obj;
         return hashCode() == other.hashCode();
+    }
+
+    @Override
+    public ValueType valueType() {
+        return expr.valueType();
     }
 
     public static UnaryExpr of(ItemType op, Expr expr) {

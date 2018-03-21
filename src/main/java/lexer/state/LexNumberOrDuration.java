@@ -20,7 +20,7 @@ public class LexNumberOrDuration extends State {
         // Next two chars must be a valid unit and a non-alphanumeric.
         if (lexer.accept("smhdwy")) {
             if (isAlphaNumeric(lexer.next())) {
-                return lexer.error("bad number or duration syntax: %s", lexer.current());
+                return lexer.error("bad number or duration syntax: \"%s\"", lexer.current());
             }
 
             lexer.backup();
@@ -28,6 +28,6 @@ public class LexNumberOrDuration extends State {
             return LexStatements;
         }
 
-        return lexer.error("bad number or duration syntax: %s", lexer.current());
+        return lexer.error("bad number or duration syntax: \"%s\"", lexer.current());
     }
 }

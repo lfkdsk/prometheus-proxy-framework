@@ -3,6 +3,7 @@ package parser.ast.expr;
 import parser.ast.Expr;
 import parser.ast.ExprBinder;
 import parser.ast.ExprType;
+import parser.ast.value.ValueType;
 
 import java.util.Objects;
 
@@ -37,5 +38,10 @@ public class ParenExpr extends Expr{
 
         ParenExpr other = (ParenExpr) obj;
         return hashCode() == other.hashCode();
+    }
+
+    @Override
+    public ValueType valueType() {
+        return inner.valueType();
     }
 }
