@@ -103,4 +103,39 @@ public enum ItemType {
         return type.compareTo(operatorsStart) > 0 && type.compareTo(operatorsEnd) < 0;
     }
 
+    // LowestPrec is a constant for operator precedence in expressions.
+    private final static int LowestPrec = 0; // Non-operators.
+
+    // Precedence returns the operator precedence of the binary
+    // operator op. If op is not a binary operator, the result
+    // is LowestPrec.
+    public static int precedence(ItemType itemType) {
+        switch (itemType) {
+            case itemLOR: {
+                return 1;
+            }
+
+            case itemLAND: case itemLUnless: {
+                return 2;
+            }
+
+            case itemEQL: case itemNEQ: case itemLTE: case itemLSS: case itemGTE: case itemGTR: {
+                return 3;
+            }
+
+            case itemADD: case itemSUB: {
+                return 4;
+            }
+
+            case itemMUL: case itemDIV: case itemMOD: {
+                return 5;
+            }
+
+            case itemPOW: {
+                return 6;
+            }
+            default:
+                return LowestPrec;
+        }
+    }
 }

@@ -1,14 +1,17 @@
 package parser;
 
 import exception.ParserException;
+import lexer.token.ItemType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.ast.Expr;
+import parser.ast.expr.BinaryExpr;
 import parser.ast.literal.NumberLiteral;
 
 import java.util.Objects;
 
 import static java.lang.String.format;
+import static lexer.token.ItemType.itemADD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static parser.Parser.parser;
@@ -95,6 +98,33 @@ class ParserTest {
         TestItem.of(
                 "0xc",
                 NumberLiteral.of(12)
+        ).test();
+
+        TestItem.of(
+                "0755",
+                NumberLiteral.of(493)
+        ).test();
+
+        TestItem.of(
+                "+5.5e-3",
+                NumberLiteral.of(0.0055)
+        ).test();
+
+        TestItem.of(
+                "-0755",
+                NumberLiteral.of(-493)
+        ).test();
+    }
+
+    @Test
+    void testBinaryExpr() {
+        TestItem.of(
+                "1 + 1",
+                BinaryExpr.of(
+                        itemADD,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1)
+                )
         ).test();
     }
 

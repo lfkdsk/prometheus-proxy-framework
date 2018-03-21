@@ -6,6 +6,7 @@ import lexer.token.ItemType;
 import lexer.token.TokenItem;
 import lombok.NonNull;
 import parser.ast.Expr;
+import parser.ast.expr.BinaryExpr;
 import parser.ast.literal.NumberLiteral;
 
 import java.util.Objects;
@@ -113,7 +114,20 @@ public final class Parser {
             next();
 
             // TODO multi types
+            // TODO vector matching
+
+            Expr rhs = unaryExpr();
+
+            expr = balance(expr, op, rhs);
         }
+    }
+
+    private BinaryExpr balance(Expr expr, ItemType op, Expr rhs) {
+        return BinaryExpr.of(
+                op,
+                expr,
+                rhs
+        );
     }
 
     private Expr unaryExpr() {
@@ -133,6 +147,8 @@ public final class Parser {
 
                     return next;
                 }
+
+                // TODO unary expr
             }
         }
 
@@ -159,6 +175,8 @@ public final class Parser {
             return Double.POSITIVE_INFINITY;
         } else if (text.toLowerCase().startsWith("0x")) {
             return Integer.valueOf(text.substring(2), 16);
+        } else if (text.startsWith("0")) {
+            return Integer.valueOf(text.substring(1), 8);
         }
 
         try {

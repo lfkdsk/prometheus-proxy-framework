@@ -1,7 +1,10 @@
 package parser.ast.literal;
 
 import parser.ast.Expr;
+import parser.ast.ExprBinder;
+import parser.ast.ExprType;
 
+@ExprBinder(type = ExprType.NumberLiteral)
 public class NumberLiteral extends Expr {
     public double number;
 
@@ -14,12 +17,19 @@ public class NumberLiteral extends Expr {
     }
 
     @Override
+    public int hashCode() {
+        return Double.hashCode(number);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null || !(obj instanceof NumberLiteral)) {
             return false;
         }
 
         NumberLiteral other = (NumberLiteral) obj;
-        return Double.valueOf(number).equals(other.number);
+        // check number && hashcode
+        return hashCode() == other.hashCode()
+                && Double.valueOf(number).equals(other.number);
     }
 }
