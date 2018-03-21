@@ -12,6 +12,8 @@ public final class States {
 
     public static final Map<String, ItemType> keywordsMap = Maps.newHashMap();
 
+    public static final Map<ItemType, String> itemTypeStr = Maps.newHashMap();
+
     static {
         // initial statements
         Stream.of(
@@ -38,5 +40,10 @@ public final class States {
 
         keywordsMap.put("nan", ItemType.itemNumber);
         keywordsMap.put("inf", ItemType.itemNumber);
+
+        Stream.of(ItemType.values())
+              .filter(itemType -> !itemType.isKeyword())
+              .filter(itemType -> Objects.nonNull(itemType.getText()))
+              .forEach(itemType -> itemTypeStr.put(itemType, itemType.getText()));
     }
 }

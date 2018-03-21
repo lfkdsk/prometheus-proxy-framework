@@ -11,24 +11,29 @@ import static java.lang.String.format;
 
 @ExprBinder(type = ExprType.BinaryExpr)
 public class BinaryExpr extends Expr {
-    public ItemType itemType;
+    public ItemType op;
     public Expr lhs, rhs;
     // TODO vector matching
     public boolean returnBool;
 
-    private BinaryExpr(ItemType itemType, Expr lhs, Expr rhs) {
-        this.itemType = itemType;
+    private BinaryExpr(ItemType itemType, Expr lhs, Expr rhs, boolean returnBool) {
+        this.op = itemType;
         this.lhs = lhs;
         this.rhs = rhs;
+        this.returnBool = returnBool;
     }
 
     public static BinaryExpr of(ItemType op, Expr lhs, Expr rhs) {
-        return new BinaryExpr(op, lhs, rhs);
+        return new BinaryExpr(op, lhs, rhs, false);
+    }
+
+    public static BinaryExpr of(ItemType op, Expr lhs, Expr rhs, boolean returnBool) {
+        return new BinaryExpr(op, lhs, rhs, returnBool);
     }
 
     @Override
     public String toString() {
-        return format("BinaryExpr<%s,%s,%s>", itemType.getText(), lhs, rhs);
+        return format("BinaryExpr<%s,%s,%s,%s>", op.getText(), lhs, rhs, returnBool);
     }
 
     @Override
@@ -45,7 +50,7 @@ public class BinaryExpr extends Expr {
         BinaryExpr other = (BinaryExpr) obj;
 
         // check inner type and hashcode
-        return itemType == other.itemType
+        return op == other.op
                 && lhs.equals(other.lhs)
                 && rhs.equals(other.rhs)
                 && hashCode() == other.hashCode();

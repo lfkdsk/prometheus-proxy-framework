@@ -17,6 +17,11 @@ public class NumberLiteral extends Expr {
     }
 
     @Override
+    public String toString() {
+        return String.format("NumberLiteral<%s>", number);
+    }
+
+    @Override
     public int hashCode() {
         return Double.hashCode(number);
     }

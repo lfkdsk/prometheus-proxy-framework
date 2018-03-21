@@ -7,6 +7,7 @@ import lexer.token.TokenItem;
 import lombok.NonNull;
 import parser.ast.Expr;
 import parser.ast.expr.BinaryExpr;
+import parser.ast.expr.ParenExpr;
 import parser.ast.literal.NumberLiteral;
 
 import java.util.Objects;
@@ -106,7 +107,7 @@ public final class Parser {
         // on the operators' precedence.
         for (; ; ) {
             ItemType op = peek().type;
-            if (!isOperator(op)) {
+            if (!op.isOperator()) {
                 return expr;
             }
 
@@ -116,17 +117,57 @@ public final class Parser {
             // TODO multi types
             // TODO vector matching
 
+            boolean returnBool = false;
+            // Parse bool modifier.
+            if (peek().type == itemBool) {
+                if (!op.isComparisonOperator()) {
+                    errorf("bool modifier can only be used on comparison operators");
+                }
+
+                // consume
+                next();
+                returnBool = true;
+            }
+
             Expr rhs = unaryExpr();
 
-            expr = balance(expr, op, rhs);
+            expr = balance(expr, op, rhs, returnBool);
         }
     }
 
-    private BinaryExpr balance(Expr expr, ItemType op, Expr rhs) {
+    private BinaryExpr balance(Expr lhs, ItemType op, Expr rhs, boolean returnBool) {
+        if (lhs instanceof BinaryExpr) {
+            BinaryExpr lhsBE = (BinaryExpr) lhs;
+            int precd = lhsBE.op.precedence() - op.precedence();
+
+            // priority higher or right assoc
+            if (precd < 0 || (precd == 0 && op.isRightAssociative())) {
+                Expr balanced = balance(lhsBE.rhs, op, rhs, returnBool);
+
+//                if lhsBE.Op.isComparisonOperator() && !lhsBE.ReturnBool && balanced.Type() == ValueTypeScalar && lhsBE.LHS.Type() == ValueTypeScalar {
+//                    p.errorf("comparisons between scalars must use BOOL modifier")
+//                }
+
+                if (lhsBE.op.isComparisonOperator() && false
+                        // TODO about scalar
+                        ) {
+                    errorf("comparisons between scalars must use BOOL modifier");
+                }
+
+                return BinaryExpr.of(
+                        lhsBE.op,
+                        lhsBE.lhs,
+                        balanced,
+                        lhsBE.returnBool
+                );
+            }
+        }
+
         return BinaryExpr.of(
                 op,
-                expr,
-                rhs
+                lhs,
+                rhs,
+                returnBool
         );
     }
 
@@ -150,11 +191,29 @@ public final class Parser {
 
                 // TODO unary expr
             }
+
+            case itemLeftParen: {
+                next();
+
+                Expr e = expr();
+                expect(itemRightParen, "paren expression");
+                return ParenExpr.of(e);
+            }
         }
 
         Expr expr = primaryExpr();
         // TODO last parser
         return expr;
+    }
+
+    // expect consumes the next token and guarantees it has the required type.
+    public TokenItem expect(ItemType exp, String context) {
+        TokenItem item = next();
+        if (item.type != exp) {
+            errorf("unexpected %s in %s, expected %s", item.desc(), context, exp.desc());
+        }
+
+        return item;
     }
 
     private Expr primaryExpr() {

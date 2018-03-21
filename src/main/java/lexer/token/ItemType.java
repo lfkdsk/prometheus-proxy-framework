@@ -99,8 +99,8 @@ public enum ItemType {
         }
     }
 
-    public static boolean isOperator(ItemType type) {
-        return type.compareTo(operatorsStart) > 0 && type.compareTo(operatorsEnd) < 0;
+    public boolean isOperator() {
+        return this.compareTo(operatorsStart) > 0 && this.compareTo(operatorsEnd) < 0;
     }
 
     // LowestPrec is a constant for operator precedence in expressions.
@@ -109,25 +109,34 @@ public enum ItemType {
     // Precedence returns the operator precedence of the binary
     // operator op. If op is not a binary operator, the result
     // is LowestPrec.
-    public static int precedence(ItemType itemType) {
-        switch (itemType) {
+    public int precedence() {
+        switch (this) {
             case itemLOR: {
                 return 1;
             }
 
-            case itemLAND: case itemLUnless: {
+            case itemLAND:
+            case itemLUnless: {
                 return 2;
             }
 
-            case itemEQL: case itemNEQ: case itemLTE: case itemLSS: case itemGTE: case itemGTR: {
+            case itemEQL:
+            case itemNEQ:
+            case itemLTE:
+            case itemLSS:
+            case itemGTE:
+            case itemGTR: {
                 return 3;
             }
 
-            case itemADD: case itemSUB: {
+            case itemADD:
+            case itemSUB: {
                 return 4;
             }
 
-            case itemMUL: case itemDIV: case itemMOD: {
+            case itemMUL:
+            case itemDIV:
+            case itemMOD: {
                 return 5;
             }
 
@@ -137,5 +146,57 @@ public enum ItemType {
             default:
                 return LowestPrec;
         }
+    }
+
+    // isCompairsonOperator returns true if the item corresponds to a comparison operator.
+    // Returns false otherwise.
+    public boolean isComparisonOperator() {
+        switch (this) {
+            case itemEQL:
+            case itemNEQ:
+            case itemLTE:
+            case itemLSS:
+            case itemGTE:
+            case itemGTR:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public boolean isRightAssociative() {
+        switch (this) {
+            case itemPOW:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public boolean isAggregator() {
+        return this.compareTo(aggregatorsStart) > 0 && this.compareTo(aggregatorsEnd) < 0;
+    }
+
+    public String desc() {
+        switch (this) {
+            case itemError:
+                return "Error";
+            case itemEOF:
+                return "end of input";
+            case itemComment:
+                return "comment";
+            case itemIdentifier:
+                return "identifier";
+            case itemMetricIdentifier:
+                return "metric identifier";
+            case itemString:
+                return "string";
+            case itemNumber:
+                return "number";
+            case itemDuration:
+                return "duration";
+        }
+
+        return isKeyword ? key : text;
     }
 }

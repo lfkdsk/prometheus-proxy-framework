@@ -6,12 +6,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.ast.Expr;
 import parser.ast.expr.BinaryExpr;
+import parser.ast.expr.ParenExpr;
 import parser.ast.literal.NumberLiteral;
 
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static lexer.token.ItemType.itemADD;
+import static lexer.token.ItemType.*;
+import static lexer.token.ItemType.itemMUL;
+import static lexer.token.ItemType.itemSUB;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static parser.Parser.parser;
@@ -124,6 +127,157 @@ class ParserTest {
                         itemADD,
                         NumberLiteral.of(1),
                         NumberLiteral.of(1)
+                )
+        ).test();
+        TestItem.of(
+                "1 - 1",
+                BinaryExpr.of(
+                        itemSUB,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1)
+                )
+        ).test();
+        TestItem.of(
+                "1 * 1",
+                BinaryExpr.of(
+                        itemMUL,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1)
+                )
+        ).test();
+
+        TestItem.of(
+                "1 % 1",
+                BinaryExpr.of(
+                        itemMOD,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1)
+                )
+        ).test();
+
+        TestItem.of(
+                "1/1",
+                BinaryExpr.of(
+                        itemDIV,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1)
+                )
+        ).test();
+    }
+
+    @Test
+    void testBoolBinaryExpr() {
+        TestItem.of(
+                "1 == bool 1",
+                BinaryExpr.of(
+                        itemEQL,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1),
+                        true
+                )
+        ).test();
+
+        TestItem.of(
+                "1 != bool 1",
+                BinaryExpr.of(
+                        itemNEQ,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1),
+                        true
+                )
+        ).test();
+
+        TestItem.of(
+                "1 > bool 1",
+                BinaryExpr.of(
+                        itemGTR,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1),
+                        true
+                )
+        ).test();
+
+        TestItem.of(
+                "1 >= bool 1",
+                BinaryExpr.of(
+                        itemGTE,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1),
+                        true
+                )
+        ).test();
+
+        TestItem.of(
+                "1 < bool 1",
+                BinaryExpr.of(
+                        itemLSS,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1),
+                        true
+                )
+        ).test();
+
+        TestItem.of(
+                "1 <= bool 1",
+                BinaryExpr.of(
+                        itemLTE,
+                        NumberLiteral.of(1),
+                        NumberLiteral.of(1),
+                        true
+                )
+        ).test();
+    }
+
+    @Test
+    void testComplexBinaryExpr() {
+        TestItem.of(
+                "+1 + -2 * 1",
+                BinaryExpr.of(
+                        itemADD,
+                        NumberLiteral.of(1),
+                        BinaryExpr.of(
+                                itemMUL,
+                                NumberLiteral.of(-2),
+                                NumberLiteral.of(1)
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "1 + 2/(3*1)",
+                BinaryExpr.of(
+                        itemADD,
+                        NumberLiteral.of(1),
+                        BinaryExpr.of(
+                                itemDIV,
+                                NumberLiteral.of(2),
+                                ParenExpr.of(
+                                        BinaryExpr.of(
+                                                itemMUL,
+                                                NumberLiteral.of(3),
+                                                NumberLiteral.of(1)
+                                        )
+                                )
+                        )
+                )
+        ).test();
+
+
+        TestItem.of(
+                "1 < bool 2 - 1 * 2",
+                BinaryExpr.of(
+                        itemLSS,
+                        NumberLiteral.of(1),
+                        BinaryExpr.of(
+                                itemSUB,
+                                NumberLiteral.of(2),
+                                BinaryExpr.of(
+                                        itemMUL,
+                                        NumberLiteral.of(1),
+                                        NumberLiteral.of(2)
+                                )
+                        ),
+                        true
                 )
         ).test();
     }
