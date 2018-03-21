@@ -17,7 +17,7 @@ public class ParserException extends RuntimeException {
 
     public ParserException(int lineNumber, int linePosition, String message) {
         super(String.format(
-                "ParserError cause in line:[ %s ] position: [ %s ] \n Error Msg : %s",
+                "Error cause in line: [%s] position: [%s] : %s",
                 lineNumber,
                 linePosition,
                 message

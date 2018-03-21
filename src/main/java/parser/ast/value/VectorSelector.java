@@ -5,6 +5,7 @@ import parser.ast.ExprBinder;
 import parser.ast.ExprType;
 import parser.match.Matcher;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +16,7 @@ import static java.util.stream.Collectors.joining;
 @ExprBinder(type = ExprType.VectorSelector)
 public class VectorSelector extends Expr {
     public String name;
-    public long duration;
+    public Duration offset;
     public List<Matcher> matchers;
 
     // TODO matcher and other type

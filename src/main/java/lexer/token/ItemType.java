@@ -199,4 +199,16 @@ public enum ItemType {
 
         return isKeyword ? key : text;
     }
+
+    // isSetOperator returns whether the item corresponds to a set operator.
+    public boolean isSetOperator() {
+        switch (this) {
+            case itemLAND:
+            case itemLOR:
+            case itemLUnless:
+                return true;
+        }
+        return false;
+    }
 }
+

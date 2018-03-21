@@ -5,6 +5,7 @@ import parser.ast.Expr;
 import parser.ast.ExprBinder;
 import parser.ast.ExprType;
 import parser.ast.value.ValueType;
+import parser.ast.value.VectorMatching;
 
 import java.util.Objects;
 
@@ -16,22 +17,27 @@ import static parser.ast.value.ValueType.ValueTypeVector;
 public class BinaryExpr extends Expr {
     public ItemType op;
     public Expr lhs, rhs;
-    // TODO vector matching
+    public VectorMatching vectorMatching;
     public boolean returnBool;
 
-    private BinaryExpr(ItemType itemType, Expr lhs, Expr rhs, boolean returnBool) {
-        this.op = itemType;
+    private BinaryExpr(ItemType op, Expr lhs, Expr rhs, VectorMatching vectorMatching, boolean returnBool) {
+        this.op = op;
         this.lhs = lhs;
         this.rhs = rhs;
+        this.vectorMatching = vectorMatching;
         this.returnBool = returnBool;
     }
 
     public static BinaryExpr of(ItemType op, Expr lhs, Expr rhs) {
-        return new BinaryExpr(op, lhs, rhs, false);
+        return new BinaryExpr(op, lhs, rhs, null, false);
     }
 
     public static BinaryExpr of(ItemType op, Expr lhs, Expr rhs, boolean returnBool) {
-        return new BinaryExpr(op, lhs, rhs, returnBool);
+        return new BinaryExpr(op, lhs, rhs, null, returnBool);
+    }
+
+    public static BinaryExpr of(ItemType op, Expr lhs, Expr rhs, boolean returnBool, VectorMatching matching) {
+        return new BinaryExpr(op, lhs, rhs, matching, returnBool);
     }
 
     @Override
@@ -52,6 +58,15 @@ public class BinaryExpr extends Expr {
 
         BinaryExpr other = (BinaryExpr) obj;
 
+        if (Objects.nonNull(vectorMatching)) {
+            if (Objects.isNull(other.vectorMatching)) {
+                return false;
+            }
+
+            if (!Objects.equals(vectorMatching, other.vectorMatching)) {
+                return false;
+            }
+        }
         // check inner type and hashcode
         return op == other.op
                 && lhs.equals(other.lhs)

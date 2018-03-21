@@ -9,6 +9,8 @@ import parser.ast.expr.BinaryExpr;
 import parser.ast.expr.ParenExpr;
 import parser.ast.expr.UnaryExpr;
 import parser.ast.literal.NumberLiteral;
+import parser.ast.value.MatrixSelector;
+import parser.ast.value.VectorMatching;
 import parser.ast.value.VectorSelector;
 import parser.match.Labels;
 import parser.match.Matcher;
@@ -21,7 +23,9 @@ import static lexer.token.ItemType.itemMUL;
 import static lexer.token.ItemType.itemSUB;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static parser.Parser.parser;
+import static parser.ast.value.VectorMatching.VectorMatchCardinality.CardOneToOne;
 import static parser.match.Labels.MetricName;
 import static parser.match.Labels.MetricNameLabel;
 
@@ -420,6 +424,95 @@ class ParserTest {
                 true,
                 "set operator \"and\" not allowed in binary scalar expression"
         ).test();
+
+        TestItem.of(
+                "1 == 1",
+                true,
+                "comparisons between scalars must use BOOL modifier"
+        ).test();
+
+        TestItem.of(
+                "1 or 1",
+                true,
+                "set operator \"or\" not allowed in binary scalar expression"
+        ).test();
+
+
+        TestItem.of(
+                "1 unless 1",
+                true,
+                "set operator \"unless\" not allowed in binary scalar expression"
+        ).test();
+    }
+
+    @Test
+    void testErrorInRemain() {
+        TestItem.of(
+                "1 !~ 1",
+                true,
+                "could not parse remaining input \"!~ 1\"..."
+        ).test();
+
+        TestItem.of(
+                "1 =~ 1",
+                true,
+                "could not parse remaining input \"=~ 1\"..."
+        ).test();
+    }
+
+    @Test
+    void testInWrongType() {
+        TestItem.of(
+                "-\"string\"",
+                true,
+                "unary expression only allowed on expressions of type scalar or instant vector, got \"string\""
+        ).test();
+
+        TestItem.of(
+                "-test[5m]",
+                true,
+                "unary expression only allowed on expressions of type scalar or instant vector, got \"range vector\""
+        ).test();
+
+        TestItem.of(
+                "*test",
+                true,
+                "no valid expression found"
+        ).test();
+
+        TestItem.of(
+                "1 offset 1d",
+                true,
+                "offset modifier must be preceded by an instant or range selector, but follows a \"NumberLiteral<1.0>\" instead"
+        ).test();
+
+
+        TestItem.of(
+                "a - on(b) ignoring(c) d",
+                true,
+                "no valid expression found"
+        ).test();
+    }
+
+    // Vector binary operations
+    @Test
+    void testVectorBinaryOp() {
+        TestItem.of(
+                "foo * bar",
+                BinaryExpr.of(
+                        itemMUL,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(CardOneToOne)
+                )
+        ).test();
     }
 
     static void testParser(TestItem test) {
@@ -445,14 +538,44 @@ class ParserTest {
         }
 
         if (test.fail && excepted != null) {
+            assertEquals(test.errorMsg, ((ParserException) excepted).getErrorMsg());
             if (!test.errorMsg.equals(((ParserException) excepted).getErrorMsg())) {
                 System.err.printf("unexpected error on input '%s'", test.input);
-                throw new RuntimeException(format("expected error to contain %s but got %s", test.errorMsg, excepted.getMessage()));
+                throw new RuntimeException(format("expected error to contain \"%s\" but got \"%s\"", test.errorMsg, excepted.getMessage()));
             }
             return;
         }
-        // TODO type check
 
+        assertNull(excepted);
+
+        try {
+            parser.typeCheck(expr);
+        } catch (Exception e) {
+            excepted = e;
+        }
+
+        if (Objects.nonNull(excepted) && !(excepted instanceof ParserException)) {
+            throw new RuntimeException("unexpected error occurred", excepted);
+        }
+
+        if (!test.fail && Objects.nonNull(excepted)) {
+            System.err.printf("error on input '%s'", test.input);
+            throw new RuntimeException(format("typecheck failed: %s", excepted.getMessage()), excepted);
+        }
+
+        if (test.fail) {
+            if (Objects.nonNull(excepted)) {
+                assertEquals(test.errorMsg, ((ParserException) excepted).getErrorMsg());
+                if (!test.errorMsg.equals(((ParserException) excepted).getErrorMsg())) {
+                    System.err.printf("unexpected error on input '%s'", test.input);
+                    throw new RuntimeException(format("expected error to contain %s but got %s", test.errorMsg, excepted.getMessage()), excepted);
+                }
+                return;
+            }
+
+            System.err.printf("error on input '%s'", test.input);
+            throw new RuntimeException(format("failure expected, but passed with result: %s", expr.toString()));
+        }
         // compare expr
         assertNotNull(expr);
         assertEquals(test.expr, expr);

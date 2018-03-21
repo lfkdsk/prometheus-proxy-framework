@@ -12,4 +12,17 @@ public enum ValueType {
     ValueType(String text) {
         this.text = text;
     }
+
+    // documentedType returns the internal type to the equivalent
+    // user facing terminology as defined in the documentation.
+    public String documentedType() {
+        switch (this.text) {
+            case "vector":
+                return "instant vector";
+            case "matrix":
+                return "range vector";
+            default:
+                return text;
+        }
+    }
 }
