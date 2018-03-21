@@ -42,7 +42,7 @@ public class BinaryExpr extends Expr {
 
     @Override
     public String toString() {
-        return format("BinaryExpr<%s,%s,%s,%s>", op.getText(), lhs, rhs, returnBool);
+        return format("BinaryExpr<%s,%s,%s,%s>", op.desc(), lhs, rhs, returnBool);
     }
 
     @Override
@@ -66,6 +66,8 @@ public class BinaryExpr extends Expr {
             if (!Objects.equals(vectorMatching, other.vectorMatching)) {
                 return false;
             }
+        } else if (Objects.nonNull(other.vectorMatching)) {
+            return false;
         }
         // check inner type and hashcode
         return op == other.op

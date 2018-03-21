@@ -21,9 +21,10 @@ public class VectorSelector extends Expr {
 
     // TODO matcher and other type
 
-    private VectorSelector(String name, List<Matcher> matchers) {
+    private VectorSelector(String name, List<Matcher> matchers, Duration offset) {
         this.name = name;
         this.matchers = matchers;
+        this.offset = offset;
     }
 
     @Override
@@ -50,15 +51,19 @@ public class VectorSelector extends Expr {
     }
 
     public static VectorSelector of(String name) {
-        return new VectorSelector(name, Collections.emptyList());
+        return new VectorSelector(name, Collections.emptyList(), null);
     }
 
     public static VectorSelector of(String name, List<Matcher> matchers) {
-        return new VectorSelector(name, matchers);
+        return new VectorSelector(name, matchers, null);
     }
 
     public static VectorSelector of(String name, Matcher... matchers) {
-        return new VectorSelector(name, Arrays.asList(matchers));
+        return new VectorSelector(name, Arrays.asList(matchers), null);
+    }
+
+    public static VectorSelector of(String name, Duration offset, Matcher... matchers) {
+        return new VectorSelector(name, Arrays.asList(matchers), offset);
     }
 
     @Override

@@ -16,10 +16,10 @@ public class Matcher {
         }
     }
 
-    private MatchType type;
-    private String name;
-    private String value;
-    private Pattern pattern;
+    public MatchType type;
+    public String name;
+    public String value;
+    public Pattern pattern;
 
     private Matcher(MatchType type, String name, String value) {
         this.type = type;
@@ -29,7 +29,7 @@ public class Matcher {
 
     @Override
     public String toString() {
-        return String.format("Matcher<%s,%s>", type, name);
+        return String.format("Matcher<%s,%s,%s>", type, name, value);
     }
 
     @Override

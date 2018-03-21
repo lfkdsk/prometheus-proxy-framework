@@ -15,6 +15,9 @@ import parser.ast.value.VectorSelector;
 import parser.match.Labels;
 import parser.match.Matcher;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -25,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static parser.Parser.parser;
-import static parser.ast.value.VectorMatching.VectorMatchCardinality.CardOneToOne;
+import static parser.ast.value.VectorMatching.VectorMatchCardinality.*;
 import static parser.match.Labels.MetricName;
 import static parser.match.Labels.MetricNameLabel;
 
@@ -511,6 +514,606 @@ class ParserTest {
                         ),
                         false,
                         VectorMatching.of(CardOneToOne)
+                )
+        ).test();
+
+        TestItem.of(
+                "foo == 1",
+                BinaryExpr.of(
+                        itemEQL,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        NumberLiteral.of(1)
+                )
+        ).test();
+
+        TestItem.of(
+                "foo == bool 1",
+                BinaryExpr.of(
+                        itemEQL,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        NumberLiteral.of(1),
+                        true
+                )
+        ).test();
+
+        TestItem.of(
+                "2.5 / bar",
+                BinaryExpr.of(
+                        itemDIV,
+                        NumberLiteral.of(2.5),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "foo and bar",
+                BinaryExpr.of(
+                        itemLAND,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(CardManyToMany)
+                )
+        ).test();
+
+        TestItem.of(
+                "foo or bar",
+                BinaryExpr.of(
+                        itemLOR,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(CardManyToMany)
+                )
+        ).test();
+
+        TestItem.of(
+                "foo unless bar",
+                BinaryExpr.of(
+                        itemLUnless,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(CardManyToMany)
+                )
+        ).test();
+    }
+
+    // Test and/or precedence and reassigning of operands.
+    @Test
+    void testPrecedence() {
+        TestItem.of(
+                "foo + bar or bla and blub",
+                BinaryExpr.of(
+                        itemLOR,
+                        BinaryExpr.of(
+                                itemADD,
+                                VectorSelector.of(
+                                        "foo",
+                                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                                ),
+                                VectorSelector.of(
+                                        "bar",
+                                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                                ),
+                                false,
+                                VectorMatching.of(CardOneToOne)
+                        ),
+                        BinaryExpr.of(
+                                itemLAND,
+                                VectorSelector.of(
+                                        "bla",
+                                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bla")
+                                ),
+                                VectorSelector.of(
+                                        "blub",
+                                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "blub")
+                                ),
+                                false,
+                                VectorMatching.of(CardManyToMany)
+                        ),
+                        false,
+                        VectorMatching.of(CardManyToMany)
+                )
+        ).test();
+    }
+
+    // bar + on(foo) bla / on(baz, buz) group_right(test) blub
+    @Test
+    void testPrecedence2() {
+        TestItem.of(
+                "bar + on(foo) bla / on(baz, buz) group_right(test) blub",
+                BinaryExpr.of(
+                        itemADD,
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        BinaryExpr.of(
+                                itemDIV,
+                                VectorSelector.of(
+                                        "bla",
+                                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bla")
+                                ),
+                                VectorSelector.of(
+                                        "blub",
+                                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "blub")
+                                ),
+                                false,
+                                VectorMatching.of(
+                                        CardOneToMany,
+                                        Arrays.asList("baz", "buz"),
+                                        true,
+                                        Collections.singletonList("test")
+                                )
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardOneToOne,
+                                Collections.singletonList("foo"),
+                                true,
+                                Collections.emptyList()
+                        )
+
+                )
+        ).test();
+    }
+
+    @Test
+    void testPrecedence3() {
+        TestItem.of(
+                "foo * on(test,blub) bar",
+                BinaryExpr.of(
+                        itemMUL,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardOneToOne,
+                                Arrays.asList("test", "blub"),
+                                true,
+                                Collections.emptyList()
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "foo * on(test,blub) group_left bar",
+                BinaryExpr.of(
+                        itemMUL,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardManyToOne,
+                                Arrays.asList("test", "blub"),
+                                true,
+                                Collections.emptyList()
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "foo and on(test,blub) bar",
+                BinaryExpr.of(
+                        itemLAND,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardManyToMany,
+                                Arrays.asList("test", "blub"),
+                                true,
+                                Collections.emptyList()
+                        )
+                )
+        ).test();
+
+
+        TestItem.of(
+                "foo and on() bar",
+                BinaryExpr.of(
+                        itemLAND,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardManyToMany,
+                                Arrays.asList(),
+                                true,
+                                Collections.emptyList()
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "foo and ignoring(test,blub) bar",
+                BinaryExpr.of(
+                        itemLAND,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardManyToMany,
+                                Arrays.asList("test", "blub"),
+                                false,
+                                Collections.emptyList()
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "foo and ignoring() bar",
+                BinaryExpr.of(
+                        itemLAND,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardManyToMany,
+                                Arrays.asList(),
+                                false,
+                                Collections.emptyList()
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "foo unless on(bar) baz",
+                BinaryExpr.of(
+                        itemLUnless,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "baz",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "baz")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardManyToMany,
+                                Arrays.asList("bar"),
+                                true,
+                                Collections.emptyList()
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "foo / ignoring(test,blub) group_left(blub) bar",
+                BinaryExpr.of(
+                        itemDIV,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardManyToOne,
+                                Arrays.asList("test", "blub"),
+                                false,
+                                Arrays.asList("blub")
+                        )
+                )
+        ).test();
+
+
+        TestItem.of(
+                "foo / on(test,blub) group_left(bar) bar",
+                BinaryExpr.of(
+                        itemDIV,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardManyToOne,
+                                Arrays.asList("test", "blub"),
+                                true,
+                                Arrays.asList("bar")
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "foo / ignoring(test,blub) group_left(bar) bar",
+                BinaryExpr.of(
+                        itemDIV,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardManyToOne,
+                                Arrays.asList("test", "blub"),
+                                false,
+                                Arrays.asList("bar")
+                        )
+                )
+        ).test();
+    }
+
+    @Test
+    void testPrecedence4() {
+        TestItem.of(
+                "foo - on(test,blub) group_right(bar,foo) bar",
+                BinaryExpr.of(
+                        itemSUB,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardOneToMany,
+                                Arrays.asList("test", "blub"),
+                                true,
+                                Arrays.asList("bar", "foo")
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "foo - ignoring(test,blub) group_right(bar,foo) bar",
+                BinaryExpr.of(
+                        itemSUB,
+                        VectorSelector.of(
+                                "foo",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                        ),
+                        VectorSelector.of(
+                                "bar",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "bar")
+                        ),
+                        false,
+                        VectorMatching.of(
+                                CardOneToMany,
+                                Arrays.asList("test", "blub"),
+                                false,
+                                Arrays.asList("bar", "foo")
+                        )
+                )
+        ).test();
+    }
+
+    @Test
+    void testErrorMsg3() {
+        TestItem.of(
+                "foo and 1",
+                true,
+                "set operator \"and\" not allowed in binary scalar expression"
+        ).test();
+
+        TestItem.of(
+                "1 and foo",
+                true,
+                "set operator \"and\" not allowed in binary scalar expression"
+        ).test();
+
+        TestItem.of(
+                "1 or foo",
+                true,
+                "set operator \"or\" not allowed in binary scalar expression"
+        ).test();
+
+        TestItem.of(
+                "foo or 1",
+                true,
+                "set operator \"or\" not allowed in binary scalar expression"
+        ).test();
+
+        TestItem.of(
+                "foo unless 1",
+                true,
+                "set operator \"unless\" not allowed in binary scalar expression"
+        ).test();
+
+        TestItem.of(
+                "1 unless foo",
+                true,
+                "set operator \"unless\" not allowed in binary scalar expression"
+        ).test();
+
+        TestItem.of(
+                "1 or on(bar) foo",
+                true,
+                "vector matching only allowed between instant vectors"
+        ).test();
+
+        TestItem.of(
+                "foo == on(bar) 10",
+                true,
+                "vector matching only allowed between instant vectors"
+        ).test();
+
+        TestItem.of(
+                "foo and on(bar) group_left(baz) bar",
+                true,
+                "no grouping allowed for \"and\" operation"
+        ).test();
+
+        TestItem.of(
+                "foo and on(bar) group_right(baz) bar",
+                true,
+                "no grouping allowed for \"and\" operation"
+        ).test();
+
+        TestItem.of(
+                "foo or on(bar) group_left(baz) bar",
+                true,
+                "no grouping allowed for \"or\" operation"
+        ).test();
+
+        TestItem.of(
+                "foo or on(bar) group_right(baz) bar",
+                true,
+                "no grouping allowed for \"or\" operation"
+        ).test();
+
+        TestItem.of(
+                "foo unless on(bar) group_left(baz) bar",
+                true,
+                "no grouping allowed for \"unless\" operation"
+        ).test();
+
+        TestItem.of(
+                "foo unless on(bar) group_right(baz) bar",
+                true,
+                "no grouping allowed for \"unless\" operation"
+        ).test();
+    }
+
+    @Test
+    void testErrorMsg4() {
+        TestItem.of(
+                "http_requests{group=\"production\"} + on(instance) group_left(job,instance) cpu_count{type=\"smp\"}",
+                true,
+                "label \"instance\" must not occur in ON and GROUP clause at once"
+        ).test();
+
+
+        TestItem.of(
+                "foo + bool bar",
+                true,
+                "bool modifier can only be used on comparison operators"
+        ).test();
+
+        TestItem.of(
+                "foo and bool bar",
+                true,
+                "bool modifier can only be used on comparison operators"
+        ).test();
+    }
+
+    // Test Vector selector.
+    @Test
+    void testVectorSelector() {
+        TestItem.of(
+                "foo",
+                VectorSelector.of(
+                        "foo",
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                )
+        ).test();
+
+        TestItem.of(
+                "foo offset 5m",
+                VectorSelector.of(
+                        "foo",
+                        Duration.ofMinutes(5),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                )
+        ).test();
+
+        TestItem.of(
+                "foo:bar{a=\"bc\"}",
+                VectorSelector.of(
+                        "foo:bar",
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, "a", "\"bc\""),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo:bar")
+                )
+        ).test();
+
+        TestItem.of(
+                "foo{NaN='bc'}",
+                VectorSelector.of(
+                        "foo",
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, "NaN", "\'bc\'"),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
+                )
+        ).test();
+
+        TestItem.of(
+                "foo{a=\"b\", foo!=\"bar\", test=~\"test\", bar!~\"baz\"}",
+                VectorSelector.of(
+                        "foo",
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, "a", "\"b\""),
+                        mockLabelMatcher(Matcher.MatchType.MatchNotEqual, "foo", "\"bar\""),
+                        mockLabelMatcher(Matcher.MatchType.MatchRegexp, "test", "\"test\""),
+                        mockLabelMatcher(Matcher.MatchType.MatchNotRegexp, "bar", "\"baz\""),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
                 )
         ).test();
     }

@@ -6,6 +6,7 @@ public enum ExprType {
     BinaryExpr,
     ParenExpr,
     UnaryExpr,
+    Call,
     VectorSelector,
     MatrixSelector;
 }

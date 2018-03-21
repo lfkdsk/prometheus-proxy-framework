@@ -57,8 +57,24 @@ public final class TypeUtils {
         return Objects.nonNull(r) && (isAlpha(r) || isDigit(r));
     }
 
+    // isLabel reports whether the string can be used as label.
+    public static boolean isLabel(String text) {
+        if (text.length() == 0 || !isAlpha(text.charAt(0))) {
+            return false;
+        }
+
+        for (char c : text.substring(1).toCharArray()) {
+            if (!isAlphaNumeric(c)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
     ///////////////////////////////////////////////////////////////////////////
-    // Other tests
+    // Other Utils
     ///////////////////////////////////////////////////////////////////////////
 
     public static long count(String text, char search) {

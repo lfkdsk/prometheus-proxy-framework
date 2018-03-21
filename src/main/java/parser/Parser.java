@@ -17,10 +17,13 @@ import parser.ast.value.MatrixSelector;
 import parser.ast.value.ValueType;
 import parser.ast.value.VectorMatching;
 import parser.ast.value.VectorSelector;
+import parser.match.Call;
+import parser.match.Function;
 import parser.match.Matcher;
 import utils.TypeUtils;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,7 +31,9 @@ import static java.lang.String.format;
 import static lexer.token.ItemType.*;
 import static parser.ast.value.ValueType.*;
 import static parser.ast.value.VectorMatching.VectorMatchCardinality.*;
+import static parser.match.Functions.getFunction;
 import static parser.match.Labels.MetricName;
+import static utils.TypeUtils.isLabel;
 
 public final class Parser {
     private final QueryLexer lexer;
@@ -144,10 +149,72 @@ public final class Parser {
                 returnBool = true;
             }
 
+            if (peek().type == itemOn || peek().type == itemIgnoring) {
+                if (peek().type == itemOn) {
+                    vecMatching.on = true;
+                }
+
+                next();
+                vecMatching.matchingLabels = labels();
+                // parse grouping
+
+                TokenItem item = peek();
+                if (item.type == itemGroupLeft || item.type == itemGroupRight) {
+                    next();
+
+                    if (item.type == itemGroupLeft) {
+                        vecMatching.card = CardManyToOne;
+                    } else {
+                        vecMatching.card = CardOneToMany;
+                    }
+
+                    if (peek().type == itemLeftParen) {
+                        vecMatching.include = labels();
+                    }
+                }
+            }
+
+            for (String matchingLabel : vecMatching.matchingLabels) {
+                for (String include : vecMatching.include) {
+                    if (matchingLabel.equals(include) && vecMatching.on) {
+                        errorf("label \"%s\" must not occur in ON and GROUP clause at once", matchingLabel);
+                    }
+                }
+            }
+
             Expr rhs = unaryExpr();
 
             expr = balance(expr, op, rhs, returnBool, vecMatching);
         }
+    }
+
+    // labels parses a list of labelnames.
+    //
+    //		'(' <label_name>, ... ')'
+    //
+    private List<String> labels() {
+        final String context = "grouping opts";
+        this.expect(itemLeftParen, context);
+        List<String> labels = Lists.newArrayList();
+        if (peek().type != itemRightParen) {
+            for (; ; ) {
+                TokenItem id = next();
+                if (!isLabel(id.text)) {
+                    errorf("unexpected %s in %s, expected label", id.desc(), context);
+                }
+
+                labels.add(id.text);
+
+                if (peek().type != itemComma) {
+                    break;
+                }
+
+                next();
+            }
+        }
+
+        expect(itemRightParen, context);
+        return labels;
     }
 
     private BinaryExpr balance(Expr lhs, ItemType op, Expr rhs, boolean returnBool, VectorMatching vectorMatching) {
@@ -170,7 +237,7 @@ public final class Parser {
                         lhsBE.lhs,
                         balanced,
                         lhsBE.returnBool,
-                        vectorMatching
+                        lhsBE.vectorMatching
                 );
             }
         }
@@ -325,10 +392,11 @@ public final class Parser {
 
             case itemIdentifier:
                 if (peek().type == itemLeftParen) {
-                    // TODO call()
+                    return call(item.text);
                 }
             case itemMetricIdentifier:
                 return VectorSelector(item.text);
+
             default: {
                 errorf("no valid expression found");
                 break;
@@ -336,6 +404,42 @@ public final class Parser {
         }
 
         return null;
+    }
+
+    // call parses a function call.
+    //
+    //		<func_name> '(' [ <arg_expr>, ...] ')'
+    //
+    private Call call(String name) {
+        final String ctx = "function call";
+        Function function = getFunction(name);
+        if (Objects.isNull(function)) {
+            errorf("unknown function with name %s", name);
+        }
+
+        expect(itemLeftParen, ctx);
+        // Might be call without args.
+        if (peek().type == itemRightParen) {
+            next(); // consume.
+            return Call.of(function, null);
+        }
+
+        List<Expr> args = Lists.newArrayList();
+        for (; ; ) {
+            Expr e = expr();
+            args.add(e);
+
+            // Terminate if no more arguments.
+            if (peek().type != itemComma) {
+                break;
+            }
+
+            next();
+        }
+
+        // Call must be closed.
+        expect(itemRightParen, ctx);
+        return Call.of(function, args);
     }
 
     private double parseNumber(String text) {
@@ -365,27 +469,14 @@ public final class Parser {
     private VectorSelector VectorSelector(String name) {
         List<Matcher> matchers = Lists.newArrayList();
         if (peek().type == itemLeftBrace) {
-            // TODO
+            matchers = labelMatchers(itemEQL, itemNEQ, itemEQLRegex, itemNEQRegex);
         }
-
-        // Metric name must not be set in the label matchers and before at the same time.
-        //        if name != "" {
-        //            for _, m := range matchers {
-        //                if m.Name == labels.MetricName {
-        //                    p.errorf("metric name must not be set twice: %q or %q", name, m.Value)
-        //                }
-        //            }
-        //            // Set name label matching.
-        //            m, err := labels.NewMatcher(labels.MatchEqual, labels.MetricName, name)
-        //            if err != nil {
-        //                panic(err) // Must not happen with metric.Equal.
-        //            }
-        //            matchers = append(matchers, m)
-        //        }
 
         if (!name.equals("")) {
             for (Matcher matcher : matchers) {
-                // todo
+                if (matcher.name.equals(MetricName)) {
+                    errorf("metric name must not be set twice: %s or %s", name, matcher.value);
+                }
             }
 
             // Set name label matching.
@@ -418,6 +509,87 @@ public final class Parser {
                 name,
                 matchers
         );
+    }
+
+    private List<Matcher> labelMatchers(ItemType... operators) {
+        final String ctx = "label matching";
+        List<Matcher> matchers = Lists.newArrayList();
+        expect(itemLeftBrace, ctx);
+        // Check if no matchers are provided.
+        if (peek().type == itemRightBrace) {
+            next();
+            return matchers;
+        }
+
+
+        for (; ; ) {
+            TokenItem label = expect(itemIdentifier, ctx);
+            ItemType op = next().type;
+            if (!op.isOperator()) {
+                errorf("expected label matching operator but got %s", op);
+            }
+
+            boolean validOp = false;
+            for (ItemType allowedOp : operators) {
+                if (op == allowedOp) {
+                    validOp = true;
+                }
+            }
+
+            if (!validOp) {
+                StringBuilder builder = new StringBuilder();
+                for (ItemType operator : operators) {
+                    builder.append(operator.desc());
+                }
+
+                errorf(
+                        "operator must be one of %s, is %s",
+                        builder.toString(),
+                        op.desc()
+                );
+            }
+
+            String val = expect(itemString, ctx).text;
+            // Map the item to the respective match type.
+            Matcher.MatchType matchType = null;
+            switch (op) {
+                case itemEQL:
+                    matchType = Matcher.MatchType.MatchEqual;
+                    break;
+                case itemNEQ:
+                    matchType = Matcher.MatchType.MatchNotEqual;
+                    break;
+                case itemEQLRegex:
+                    matchType = Matcher.MatchType.MatchRegexp;
+                    break;
+                case itemNEQRegex:
+                    matchType = Matcher.MatchType.MatchNotRegexp;
+                    break;
+                default:
+                    errorf("item %s is not a metric match type", op.desc());
+            }
+
+            Matcher matcher = Matcher.newMatcher(matchType, label.text, val);
+            matchers.add(matcher);
+
+            if (peek().type == itemIdentifier) {
+                errorf("missing comma before next identifier %s", peek().text);
+            }
+
+            // Terminate list if last matcher.
+            if (peek().type != itemComma) {
+                break;
+            }
+
+            next();
+            // Allow comma after each item in a multi-line listing.
+            if (peek().type == itemRightBrace) {
+                break;
+            }
+        }
+
+        expect(itemRightBrace, ctx);
+        return matchers;
     }
 
     public void typeCheck(Expr expr) {
@@ -460,10 +632,10 @@ public final class Parser {
                     // Both operands are Vectors.
                     if (binaryExpr.op.isSetOperator() && Objects.nonNull(binaryExpr.vectorMatching)) {
                         if (binaryExpr.vectorMatching.card == CardOneToMany || binaryExpr.vectorMatching.card == CardManyToOne) {
-                            errorf("no grouping allowed for %s operation", binaryExpr.op);
+                            errorf("no grouping allowed for \"%s\" operation", binaryExpr.op.desc());
                         }
 
-                        if (binaryExpr.vectorMatching.card != CardManyToOne) {
+                        if (binaryExpr.vectorMatching.card != CardManyToMany) {
                             errorf("set operations must always be many-to-many");
                         }
                     }

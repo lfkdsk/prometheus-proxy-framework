@@ -1,6 +1,7 @@
 package parser.ast.value;
 
 import exception.ParserException;
+import lombok.NonNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -40,11 +41,15 @@ public class VectorMatching {
         this.card = card;
         this.matchingLabels = matchingLabels;
         this.on = on;
-        this.include = include;
+        this.include = include == null ? Collections.emptyList() : include;
     }
 
     public static VectorMatching of(VectorMatchCardinality card) {
         return new VectorMatching(card, Collections.emptyList(), false, Collections.emptyList());
+    }
+
+    public static VectorMatching of(VectorMatchCardinality card, List<String> matchingLabels, boolean on, List<String> include) {
+        return new VectorMatching(card, matchingLabels, on, include);
     }
 
     @Override
@@ -65,6 +70,15 @@ public class VectorMatching {
         }
 
         VectorMatching other = (VectorMatching) obj;
+        if (Objects.nonNull(include)) {
+            if (Objects.isNull(other.include)) {
+                return false;
+            }
+
+            if (!Objects.deepEquals(include, other.include)) {
+                return false;
+            }
+        }
         return hashCode() == other.hashCode();
     }
 }
