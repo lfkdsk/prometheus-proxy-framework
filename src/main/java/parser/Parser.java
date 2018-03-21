@@ -1,5 +1,7 @@
 package parser;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import exception.ParserException;
 import lexer.QueryLexer;
 import lexer.token.ItemType;
@@ -8,12 +10,17 @@ import lombok.NonNull;
 import parser.ast.Expr;
 import parser.ast.expr.BinaryExpr;
 import parser.ast.expr.ParenExpr;
+import parser.ast.expr.UnaryExpr;
 import parser.ast.literal.NumberLiteral;
+import parser.ast.value.VectorSelector;
+import parser.match.Matcher;
 
+import java.util.List;
 import java.util.Objects;
 
 import static java.lang.String.format;
 import static lexer.token.ItemType.*;
+import static parser.match.Labels.MetricName;
 
 public final class Parser {
     private final QueryLexer lexer;
@@ -144,12 +151,12 @@ public final class Parser {
             if (precd < 0 || (precd == 0 && op.isRightAssociative())) {
                 Expr balanced = balance(lhsBE.rhs, op, rhs, returnBool);
 
-//                if lhsBE.Op.isComparisonOperator() && !lhsBE.ReturnBool && balanced.Type() == ValueTypeScalar && lhsBE.LHS.Type() == ValueTypeScalar {
-//                    p.errorf("comparisons between scalars must use BOOL modifier")
-//                }
+                //                if lhsBE.Op.isComparisonOperator() && !lhsBE.ReturnBool && balanced.Type() == ValueTypeScalar && lhsBE.LHS.Type() == ValueTypeScalar {
+                //                    p.errorf("comparisons between scalars must use BOOL modifier")
+                //                }
 
                 if (lhsBE.op.isComparisonOperator() && false
-                        // TODO about scalar
+                    // TODO about scalar
                         ) {
                     errorf("comparisons between scalars must use BOOL modifier");
                 }
@@ -189,7 +196,7 @@ public final class Parser {
                     return next;
                 }
 
-                // TODO unary expr
+                return UnaryExpr.of(item.type, next);
             }
 
             case itemLeftParen: {
@@ -203,6 +210,11 @@ public final class Parser {
 
         Expr expr = primaryExpr();
         // TODO last parser
+
+        // Expression might be followed by a range selector.
+        if (peek().type == itemLeftBracket) {
+
+        }
         return expr;
     }
 
@@ -223,6 +235,18 @@ public final class Parser {
                 double number = parseNumber(item.text);
                 return NumberLiteral.of(number);
             }
+
+            case itemLeftBrace: {
+                backup();
+                return VectorSelector("");
+            }
+
+            case itemIdentifier:
+                if (peek().type == itemLeftParen) {
+                    // TODO call()
+                }
+            case itemMetricIdentifier:
+                return VectorSelector(item.text);
         }
 
         return null;
@@ -246,6 +270,68 @@ public final class Parser {
 
         // useless
         return -1;
+    }
+
+    // VectorSelector parses a new (instant) vector selector.
+    //
+    //		<metric_identifier> [<label_matchers>]
+    //		[<metric_identifier>] <label_matchers>
+    private VectorSelector VectorSelector(String name) {
+        List<Matcher> matchers = Lists.newArrayList();
+        if (peek().type == itemLeftBrace) {
+            // TODO
+        }
+
+        // Metric name must not be set in the label matchers and before at the same time.
+        //        if name != "" {
+        //            for _, m := range matchers {
+        //                if m.Name == labels.MetricName {
+        //                    p.errorf("metric name must not be set twice: %q or %q", name, m.Value)
+        //                }
+        //            }
+        //            // Set name label matching.
+        //            m, err := labels.NewMatcher(labels.MatchEqual, labels.MetricName, name)
+        //            if err != nil {
+        //                panic(err) // Must not happen with metric.Equal.
+        //            }
+        //            matchers = append(matchers, m)
+        //        }
+
+        if (!name.equals("")) {
+            for (Matcher matcher : matchers) {
+                // todo
+            }
+
+            // Set name label matching.
+            Matcher matcher = Matcher.newMatcher(
+                    Matcher.MatchType.MatchEqual,
+                    MetricName,
+                    name
+            );
+
+            matchers.add(matcher);
+        }
+
+        if (matchers.size() == 0) {
+            errorf("vector selector must contain label matchers or metric name");
+        }
+
+        boolean notEmpty = false;
+        for (Matcher matcher : matchers) {
+            if (!matcher.matches("")) {
+                notEmpty = true;
+                break;
+            }
+        }
+
+        if (!notEmpty) {
+            errorf("vector selector must contain at least one non-empty matcher");
+        }
+
+        return VectorSelector.of(
+                name,
+                matchers
+        );
     }
 
     public static Parser parser(String input) {

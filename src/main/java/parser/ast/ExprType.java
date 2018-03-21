@@ -3,5 +3,7 @@ package parser.ast;
 public enum ExprType {
     NumberLiteral,
     BinaryExpr,
-    ParenExpr
+    ParenExpr,
+    UnaryExpr,
+    VectorSelector
 }

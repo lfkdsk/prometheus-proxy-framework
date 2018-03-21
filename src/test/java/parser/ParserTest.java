@@ -7,7 +7,11 @@ import org.junit.jupiter.api.Test;
 import parser.ast.Expr;
 import parser.ast.expr.BinaryExpr;
 import parser.ast.expr.ParenExpr;
+import parser.ast.expr.UnaryExpr;
 import parser.ast.literal.NumberLiteral;
+import parser.ast.value.VectorSelector;
+import parser.match.Labels;
+import parser.match.Matcher;
 
 import java.util.Objects;
 
@@ -18,6 +22,8 @@ import static lexer.token.ItemType.itemSUB;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static parser.Parser.parser;
+import static parser.match.Labels.MetricName;
+import static parser.match.Labels.MetricNameLabel;
 
 class ParserTest {
     static final class TestItem {
@@ -36,6 +42,10 @@ class ParserTest {
 
         public static TestItem of(String input, boolean fail, String errorMsg, Expr expr) {
             return new TestItem(input, fail, errorMsg, expr);
+        }
+
+        public static TestItem of(String input, boolean fail, String errorMsg) {
+            return new TestItem(input, fail, errorMsg, null);
         }
 
         public static TestItem of(String input, Expr expr) {
@@ -282,6 +292,48 @@ class ParserTest {
         ).test();
     }
 
+    @Test
+    void testSimpleMetrics() {
+        TestItem.of(
+                "-some_metric",
+                UnaryExpr.of(
+                        itemSUB,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(
+                                        Matcher.MatchType.MatchEqual,
+                                        MetricNameLabel,
+                                        "some_metric"
+                                )
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "+some_metric",
+                UnaryExpr.of(
+                        itemADD,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(
+                                        Matcher.MatchType.MatchEqual,
+                                        MetricNameLabel,
+                                        "some_metric"
+                                )
+                        )
+                )
+        ).test();
+    }
+
+    @Test
+    void testErrorMsg() {
+        TestItem.of(
+                "",
+                true,
+                "no expression found in input"
+        ).test();
+    }
+
     static void testParser(TestItem test) {
         Parser parser = parser(test.input);
 
@@ -304,10 +356,25 @@ class ParserTest {
             throw new RuntimeException(format("could not parse: %s", exceptedError.getMessage()), exceptedError);
         }
 
+        if (test.fail && excepted != null) {
+            if (!test.errorMsg.equals(((ParserException) excepted).getErrorMsg())) {
+                System.err.printf("unexpected error on input '%s'", test.input);
+                throw new RuntimeException(format("expected error to contain %s but got %s", test.errorMsg, excepted.getMessage()));
+            }
+            return;
+        }
         // TODO type check
 
         // compare expr
         assertNotNull(expr);
         assertEquals(test.expr, expr);
+    }
+
+    static Matcher mockLabelMatcher(Matcher.MatchType type, String name, String value) {
+        return Matcher.newMatcher(
+                type,
+                name,
+                value
+        );
     }
 }
