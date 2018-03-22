@@ -39,7 +39,7 @@ public class TokenItem {
             return type.desc();
         }
 
-        return format("%s %s", type.desc(), this.toString());
+        return format("%s \"%s\"", type.desc(), text);
     }
 
     @Override

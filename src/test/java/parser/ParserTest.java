@@ -2,6 +2,9 @@ package parser;
 
 import exception.ParserException;
 import lexer.token.ItemType;
+import lexer.token.TokenItem;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.ast.Expr;
@@ -9,6 +12,8 @@ import parser.ast.expr.BinaryExpr;
 import parser.ast.expr.ParenExpr;
 import parser.ast.expr.UnaryExpr;
 import parser.ast.literal.NumberLiteral;
+import parser.ast.literal.StringLiteral;
+import parser.ast.value.AggregateExpr;
 import parser.ast.value.MatrixSelector;
 import parser.ast.value.VectorMatching;
 import parser.ast.value.VectorSelector;
@@ -33,6 +38,8 @@ import static parser.match.Labels.MetricName;
 import static parser.match.Labels.MetricNameLabel;
 
 class ParserTest {
+    static int testCount = 0;
+
     static final class TestItem {
         final String input;
         final boolean fail;
@@ -61,6 +68,7 @@ class ParserTest {
 
         public void test() {
             testParser(this);
+            testCount++;
         }
     }
 
@@ -1091,7 +1099,7 @@ class ParserTest {
                 "foo:bar{a=\"bc\"}",
                 VectorSelector.of(
                         "foo:bar",
-                        mockLabelMatcher(Matcher.MatchType.MatchEqual, "a", "\"bc\""),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, "a", "bc"),
                         mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo:bar")
                 )
         ).test();
@@ -1100,7 +1108,7 @@ class ParserTest {
                 "foo{NaN='bc'}",
                 VectorSelector.of(
                         "foo",
-                        mockLabelMatcher(Matcher.MatchType.MatchEqual, "NaN", "\'bc\'"),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, "NaN", "bc"),
                         mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
                 )
         ).test();
@@ -1109,13 +1117,477 @@ class ParserTest {
                 "foo{a=\"b\", foo!=\"bar\", test=~\"test\", bar!~\"baz\"}",
                 VectorSelector.of(
                         "foo",
-                        mockLabelMatcher(Matcher.MatchType.MatchEqual, "a", "\"b\""),
-                        mockLabelMatcher(Matcher.MatchType.MatchNotEqual, "foo", "\"bar\""),
-                        mockLabelMatcher(Matcher.MatchType.MatchRegexp, "test", "\"test\""),
-                        mockLabelMatcher(Matcher.MatchType.MatchNotRegexp, "bar", "\"baz\""),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, "a", "b"),
+                        mockLabelMatcher(Matcher.MatchType.MatchNotEqual, "foo", "bar"),
+                        mockLabelMatcher(Matcher.MatchType.MatchRegexp, "test", "test"),
+                        mockLabelMatcher(Matcher.MatchType.MatchNotRegexp, "bar", "baz"),
                         mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "foo")
                 )
         ).test();
+    }
+
+    @Test
+    void testSymbolErrorMsg() {
+        TestItem.of(
+                "{",
+                true,
+                "unexpected end of input inside braces"
+        ).test();
+
+        TestItem.of(
+                "}",
+                true,
+                "unexpected character: '}'"
+        ).test();
+
+        TestItem.of(
+                "some{",
+                true,
+                "unexpected end of input inside braces"
+        ).test();
+
+        TestItem.of(
+                "some}",
+                true,
+                "could not parse remaining input \"}\"..."
+        ).test();
+
+        TestItem.of(
+                "some_metric{a=b}",
+                true,
+                "unexpected identifier \"b\" in label matching, expected string"
+        ).test();
+
+        TestItem.of(
+                "some_metric{a:b=\"b\"}",
+                true,
+                "unexpected character inside braces: ':'"
+        ).test();
+
+        TestItem.of(
+                "foo{a*\"b\"}",
+                true,
+                "unexpected character inside braces: '*'"
+        ).test();
+
+        TestItem.of(
+                "foo{a>=\"b\"}",
+                true,
+                // TODO(fabxc): willingly lexing wrong tokens allows for more precrise error
+                // messages from the parser - consider if this is an option.
+                "unexpected character inside braces: '>'"
+        ).test();
+    }
+
+    @Test
+    void testExpectSymbol() {
+        //        TestItem.of(
+        //                "some_metric{a=\"\xff\"}",
+        //                true,
+        //                ""
+        //        ).test();
+
+        TestItem.of(
+                "foo{gibberish}",
+                true,
+                "expected label matching operator but got }"
+        ).test();
+
+        TestItem.of(
+                "foo{1}",
+                true,
+                "unexpected character inside braces: '1'"
+        ).test();
+
+        TestItem.of(
+                "{}",
+                true,
+                "vector selector must contain label matchers or metric name"
+        ).test();
+
+        TestItem.of(
+                "{x=\"\"}",
+                true,
+                "vector selector must contain at least one non-empty matcher"
+        ).test();
+
+
+        TestItem.of(
+                "{x=~\".*\"}",
+                true,
+                "vector selector must contain at least one non-empty matcher"
+        ).test();
+
+        TestItem.of(
+                "{x!~\".+\"}",
+                true,
+                "vector selector must contain at least one non-empty matcher"
+        ).test();
+
+        TestItem.of(
+                "{x!=\"a\"}",
+                true,
+                "vector selector must contain at least one non-empty matcher"
+        ).test();
+
+        TestItem.of(
+                "foo{__name__=\"bar\"}",
+                true,
+                "metric name must not be set twice: \"foo\" or \"bar\""
+        ).test();
+    }
+
+    // Test matrix selector.
+    @Test
+    void testMatrixSelector() {
+        TestItem.of(
+                "test[5s]",
+                MatrixSelector.of(
+                        "test",
+                        Duration.ofSeconds(5),
+                        Duration.ZERO,
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "test")
+                )
+        ).test();
+
+
+        TestItem.of(
+                "test[5m]",
+                MatrixSelector.of(
+                        "test",
+                        Duration.ofMinutes(5),
+                        Duration.ZERO,
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "test")
+                )
+        ).test();
+
+        TestItem.of(
+                "test[5h] OFFSET 5m",
+                MatrixSelector.of(
+                        "test",
+                        Duration.ofHours(5),
+                        Duration.ofMinutes(5),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "test")
+                )
+        ).test();
+
+        TestItem.of(
+                "test[5d] OFFSET 10s",
+                MatrixSelector.of(
+                        "test",
+                        Duration.ofDays(5),
+                        Duration.ofSeconds(10),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "test")
+                )
+        ).test();
+
+        TestItem.of(
+                "test[5w] offset 2w",
+                MatrixSelector.of(
+                        "test",
+                        Duration.ofDays(7 * 5),
+                        Duration.ofDays(7 * 2),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "test")
+                )
+        ).test();
+
+        TestItem.of(
+                "test{a=\"b\"}[5y] OFFSET 3d",
+                MatrixSelector.of(
+                        "test",
+                        Duration.ofDays(5 * 365),
+                        Duration.ofDays(3),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, "a", "b"),
+                        mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "test")
+                )
+        ).test();
+    }
+
+    @Test
+    void testErrorMsgInMetrix() {
+        TestItem.of(
+                "foo[5mm]",
+                true,
+                "bad duration syntax: \"5mm\""
+        ).test();
+
+        TestItem.of(
+                "foo[0m]",
+                true,
+                "duration must be greater than 0"
+        ).test();
+
+        TestItem.of(
+                "foo[5m30s]",
+                true,
+                "bad duration syntax: \"5m3\""
+        ).test();
+
+        TestItem.of(
+                "foo[5m] OFFSET 1h30m",
+                true,
+                "bad number or duration syntax: \"1h3\""
+        ).test();
+
+        TestItem.of(
+                "foo[\"5m\"]",
+                true,
+                "missing unit character in duration"
+        ).test();
+
+        TestItem.of(
+                "foo[]",
+                true,
+                "missing unit character in duration"
+        ).test();
+
+        TestItem.of(
+                "foo[1]",
+                true,
+                "missing unit character in duration"
+        ).test();
+
+        TestItem.of(
+                "some_metric[5m] OFFSET 1",
+                true,
+                "unexpected number \"1\" in offset, expected duration"
+        ).test();
+
+        TestItem.of(
+                "some_metric[5m] OFFSET 1mm",
+                true,
+                "bad number or duration syntax: \"1mm\""
+        ).test();
+
+        TestItem.of(
+                "some_metric[5m] OFFSET",
+                true,
+                "unexpected end of input in offset, expected duration"
+        ).test();
+
+        TestItem.of(
+                "some_metric OFFSET 1m[5m]",
+                true,
+                "could not parse remaining input \"[5m]\"..."
+        ).test();
+
+        TestItem.of(
+                "(foo + bar)[5m]",
+                true,
+                "could not parse remaining input \"[5m]\"..."
+        ).test();
+    }
+
+    // Test aggregation.
+    @Test
+    void testAggregation() {
+        TestItem.of(
+                "sum by (foo)(some_metric)",
+                AggregateExpr.of(
+                        itemSum,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        Arrays.asList("foo")
+                )
+        ).test();
+
+        TestItem.of(
+                "avg by (foo)(some_metric)",
+                AggregateExpr.of(
+                        itemAvg,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        Arrays.asList("foo")
+                )
+        ).test();
+
+        TestItem.of(
+                "max by (foo)(some_metric)",
+                AggregateExpr.of(
+                        itemMax,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        Arrays.asList("foo")
+                )
+        ).test();
+
+        TestItem.of(
+                "sum without (foo) (some_metric)",
+                AggregateExpr.of(
+                        itemSum,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        null,
+                        Arrays.asList("foo"),
+                        true
+                )
+        ).test();
+
+        TestItem.of(
+                "sum (some_metric) without (foo)",
+                AggregateExpr.of(
+                        itemSum,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        null,
+                        Arrays.asList("foo"),
+                        true
+                )
+        ).test();
+
+        TestItem.of(
+                "stddev(some_metric)",
+                AggregateExpr.of(
+                        itemStddev,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "stdvar by (foo)(some_metric)",
+                AggregateExpr.of(
+                        itemStdvar,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        Arrays.asList("foo")
+                )
+        ).test();
+
+        TestItem.of(
+                "sum by ()(some_metric)",
+                AggregateExpr.of(
+                        itemSum,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        Collections.emptyList()
+                )
+        ).test();
+
+        TestItem.of(
+                "topk(5, some_metric)",
+                AggregateExpr.of(
+                        itemTopK,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        NumberLiteral.of(5)
+                )
+        ).test();
+
+        TestItem.of(
+                "count_values(\"value\", some_metric)",
+                AggregateExpr.of(
+                        itemCountValues,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        StringLiteral.of("value")
+                )
+        ).test();
+    }
+
+    // Test usage of keywords as label names.
+    @Test
+    void testUsageOfKeyWordsAsLabelNames() {
+        TestItem.of(
+                "sum without(and, by, avg, count, alert, annotations)(some_metric)",
+                AggregateExpr.of(
+                        itemSum,
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        null,
+                        Arrays.asList("and", "by", "avg", "count", "alert", "annotations"),
+                        true
+                )
+        ).test();
+    }
+
+    @Test
+    void testErrorMsgInAggs() {
+        TestItem.of(
+                "sum without(==)(some_metric)",
+                true,
+                "unexpected Item<itemEQL,12,==> in grouping opts, expected label"
+        ).test();
+
+        TestItem.of(
+                "sum some_metric by (test)",
+                true,
+                "unexpected identifier \"some_metric\" in aggregation, expected \"(\""
+        ).test();
+
+        TestItem.of(
+                "sum (some_metric) by test",
+                true,
+                "unexpected identifier \"test\" in grouping opts, expected \"(\""
+        ).test();
+
+
+        TestItem.of(
+                "sum () by (test)",
+                true,
+                "no valid expression found"
+        ).test();
+
+
+        TestItem.of(
+                "MIN keep_common (some_metric)",
+                true,
+                "unexpected identifier \"keep_common\" in aggregation, expected \"(\""
+        ).test();
+
+        TestItem.of(
+                "MIN (some_metric) keep_common",
+                true,
+                "could not parse remaining input \"keep_common\"..."
+        ).test();
+
+        TestItem.of(
+                "sum (some_metric) without (test) by (test)",
+                true,
+                "could not parse remaining input \"by (test)\"..."
+        ).test();
+
+        TestItem.of(
+                "topk(some_metric)",
+                true,
+                "unexpected Item<itemRightParen,16,)> in aggregation, expected \",\""
+        ).test();
+
+        TestItem.of(
+                "topk(some_metric, other_metric)",
+                true,
+                "expected type scalar in aggregation parameter, got instant vector"
+        ).test();
+
+
+    }
+
+    @AfterAll
+    static void afterAll() {
+        System.out.println();
+        System.out.println(format("account to %s tests", testCount));
     }
 
     static void testParser(TestItem test) {
@@ -1141,11 +1613,11 @@ class ParserTest {
         }
 
         if (test.fail && excepted != null) {
-            assertEquals(test.errorMsg, ((ParserException) excepted).getErrorMsg());
             if (!test.errorMsg.equals(((ParserException) excepted).getErrorMsg())) {
                 System.err.printf("unexpected error on input '%s'", test.input);
-                throw new RuntimeException(format("expected error to contain \"%s\" but got \"%s\"", test.errorMsg, excepted.getMessage()));
+                throw new RuntimeException(format("expected error to contain \"%s\" but got \"%s\"", test.errorMsg, excepted.getMessage()), excepted);
             }
+            assertEquals(test.errorMsg, ((ParserException) excepted).getErrorMsg());
             return;
         }
 
@@ -1168,11 +1640,11 @@ class ParserTest {
 
         if (test.fail) {
             if (Objects.nonNull(excepted)) {
-                assertEquals(test.errorMsg, ((ParserException) excepted).getErrorMsg());
                 if (!test.errorMsg.equals(((ParserException) excepted).getErrorMsg())) {
                     System.err.printf("unexpected error on input '%s'", test.input);
                     throw new RuntimeException(format("expected error to contain %s but got %s", test.errorMsg, excepted.getMessage()), excepted);
                 }
+                assertEquals(test.errorMsg, ((ParserException) excepted).getErrorMsg());
                 return;
             }
 

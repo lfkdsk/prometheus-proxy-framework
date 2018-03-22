@@ -8,5 +8,6 @@ public enum ExprType {
     UnaryExpr,
     Call,
     VectorSelector,
-    MatrixSelector;
+    MatrixSelector,
+    AggregateExpr;
 }

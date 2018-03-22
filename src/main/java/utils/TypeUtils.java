@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public final class TypeUtils {
@@ -133,4 +134,18 @@ public final class TypeUtils {
         return dur;
     }
 
+    // TODO this function need more details
+    public static String unquote(String str) {
+        int length = str == null ? -1 : str.length();
+        if (str == null || length == 0)
+            return str;
+
+        return str.chars()
+                  .mapToObj(c -> (char) c)
+                  .filter(c -> c != '\'')
+                  .filter(c -> c != '\"')
+                  .filter(c -> c != '`')
+                  .map(String::valueOf)
+                  .collect(joining());
+    }
 }

@@ -177,6 +177,12 @@ public enum ItemType {
         return this.compareTo(aggregatorsStart) > 0 && this.compareTo(aggregatorsEnd) < 0;
     }
 
+    // isAggregator returns true if the item is an aggregator that takes a parameter.
+    // Returns false otherwise
+    public boolean isAggregatorWithParam() {
+        return this == itemTopK || this == itemBottomK || this == itemCountValues || this == itemQuantile;
+    }
+
     public String desc() {
         switch (this) {
             case itemError:

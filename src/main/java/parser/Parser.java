@@ -13,10 +13,7 @@ import parser.ast.expr.ParenExpr;
 import parser.ast.expr.UnaryExpr;
 import parser.ast.literal.NumberLiteral;
 import parser.ast.literal.StringLiteral;
-import parser.ast.value.MatrixSelector;
-import parser.ast.value.ValueType;
-import parser.ast.value.VectorMatching;
-import parser.ast.value.VectorSelector;
+import parser.ast.value.*;
 import parser.match.Call;
 import parser.match.Function;
 import parser.match.Matcher;
@@ -34,6 +31,7 @@ import static parser.ast.value.VectorMatching.VectorMatchCardinality.*;
 import static parser.match.Functions.getFunction;
 import static parser.match.Labels.MetricName;
 import static utils.TypeUtils.isLabel;
+import static utils.TypeUtils.unquote;
 
 public final class Parser {
     private final QueryLexer lexer;
@@ -86,7 +84,7 @@ public final class Parser {
     }
 
     public void errorf(String format, Object... args) {
-        System.err.printf(format, args);
+        System.err.printf(format + '\n', args);
         error(format(format, args));
     }
 
@@ -367,7 +365,7 @@ public final class Parser {
     public TokenItem expect(ItemType exp, String context) {
         TokenItem item = next();
         if (item.type != exp) {
-            errorf("unexpected %s in %s, expected %s", item.desc(), context, exp.desc());
+            errorf("unexpected %s in %s, expected \"%s\"", item.desc(), context, exp.desc());
         }
 
         return item;
@@ -375,6 +373,12 @@ public final class Parser {
 
     private Expr primaryExpr() {
         TokenItem item = next();
+
+        if (item.type.isAggregator()) {
+            backup();
+            return aggrExpr();
+        }
+
         switch (item.type) {
             case itemNumber: {
                 double number = parseNumber(item.text);
@@ -382,7 +386,7 @@ public final class Parser {
             }
 
             case itemString: {
-                return StringLiteral.of(item.text);
+                return StringLiteral.of(unquote(item.text));
             }
 
             case itemLeftBrace: {
@@ -404,6 +408,71 @@ public final class Parser {
         }
 
         return null;
+    }
+
+
+    // aggrExpr parses an aggregation expression.
+    //
+    //		<aggr_op> (<Vector_expr>) [by|without <labels>]
+    //		<aggr_op> [by|without <labels>] (<Vector_expr>)
+    //
+    private AggregateExpr aggrExpr() {
+        final String ctx = "aggregation";
+        TokenItem agop = next();
+
+        if (!agop.type.isAggregator()) {
+            errorf("expected aggregation operator but got %s", agop);
+        }
+
+        List<String> grouping = Lists.newArrayList();
+        boolean without = false;
+        boolean modifiersFirst = false;
+
+        ItemType type = peek().type;
+        if (type == itemBy || type == itemWithout) {
+            if (type == itemWithout) {
+                without = true;
+            }
+
+            next();
+            grouping = labels();
+            modifiersFirst = true;
+        }
+
+        expect(itemLeftParen, ctx);
+        Expr param = null;
+
+        if (agop.type.isAggregatorWithParam()) {
+            param = expr();
+            expect(itemComma, ctx);
+        }
+
+        Expr expr = expr();
+        expect(itemRightParen, ctx);
+
+        if (!modifiersFirst) {
+            ItemType t = peek().type;
+            if (t == itemBy || t == itemWithout) {
+                if (!grouping.isEmpty()) {
+                    errorf("aggregation must only contain one grouping clause");
+                }
+
+                if (t == itemWithout) {
+                    without = true;
+                }
+
+                next();
+                grouping = labels();
+            }
+        }
+
+        return AggregateExpr.of(
+                agop.type,
+                expr,
+                param,
+                grouping,
+                without
+        );
     }
 
     // call parses a function call.
@@ -475,7 +544,7 @@ public final class Parser {
         if (!name.equals("")) {
             for (Matcher matcher : matchers) {
                 if (matcher.name.equals(MetricName)) {
-                    errorf("metric name must not be set twice: %s or %s", name, matcher.value);
+                    errorf("metric name must not be set twice: \"%s\" or \"%s\"", name, matcher.value);
                 }
             }
 
@@ -493,6 +562,8 @@ public final class Parser {
             errorf("vector selector must contain label matchers or metric name");
         }
 
+        // A Vector selector must contain at least one non-empty matcher to prevent
+        // implicit selection of all metrics (e.g. by a typo).
         boolean notEmpty = false;
         for (Matcher matcher : matchers) {
             if (!matcher.matches("")) {
@@ -526,7 +597,7 @@ public final class Parser {
             TokenItem label = expect(itemIdentifier, ctx);
             ItemType op = next().type;
             if (!op.isOperator()) {
-                errorf("expected label matching operator but got %s", op);
+                errorf("expected label matching operator but got %s", op.desc());
             }
 
             boolean validOp = false;
@@ -549,7 +620,7 @@ public final class Parser {
                 );
             }
 
-            String val = expect(itemString, ctx).text;
+            String val = unquote(expect(itemString, ctx).text);
             // Map the item to the respective match type.
             Matcher.MatchType matchType = null;
             switch (op) {

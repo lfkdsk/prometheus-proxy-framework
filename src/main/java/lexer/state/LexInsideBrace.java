@@ -84,7 +84,7 @@ public class LexInsideBrace extends State{
             }
 
             default: {
-                return lexer.error("unexpected character inside braces: %c", ch);
+                return lexer.error("unexpected character inside braces: \'%c\'", ch);
             }
         }
         return LexInsideBrace;
