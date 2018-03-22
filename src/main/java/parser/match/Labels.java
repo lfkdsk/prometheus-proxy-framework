@@ -2,9 +2,9 @@ package parser.match;
 
 public class Labels {
     public static final String MetricName   = "__name__";
-    public static final String AlertName    = "alertname";
-    public static final String BucketLabel  = "le";
-    public static final String InstanceName = "instance";
+//    public static final String AlertName    = "alertname";
+//    public static final String BucketLabel  = "le";
+//    public static final String InstanceName = "instance";
 
     // AlertNameLabel is the name of the label containing the an alert's name.
 //    AlertNameLabel = "alertname"
@@ -59,7 +59,7 @@ public class Labels {
     // bucket of a histogram ("le" -> "less or equal").
     // QuantileLabel is used for the label that defines the quantile in a
     // summary.
-    public static final String QuantileLabel = "quantile";
+//    public static final String QuantileLabel = "quantile";
 
 
 }
