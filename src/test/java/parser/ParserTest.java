@@ -17,6 +17,7 @@ import parser.ast.value.AggregateExpr;
 import parser.ast.value.MatrixSelector;
 import parser.ast.value.VectorMatching;
 import parser.ast.value.VectorSelector;
+import parser.match.Call;
 import parser.match.Labels;
 import parser.match.Matcher;
 
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static parser.Parser.parser;
 import static parser.ast.value.VectorMatching.VectorMatchCardinality.*;
+import static parser.match.Functions.getFunction;
 import static parser.match.Labels.MetricName;
 import static parser.match.Labels.MetricNameLabel;
 
@@ -1574,11 +1576,104 @@ class ParserTest {
                 true,
                 "unexpected Item<itemRightParen,16,)> in aggregation, expected \",\""
         ).test();
+    }
 
+    @Test
+    void testTypeCheck() {
         TestItem.of(
                 "topk(some_metric, other_metric)",
                 true,
                 "expected type scalar in aggregation parameter, got instant vector"
+        ).test();
+
+        TestItem.of(
+                "count_values(5, other_metric)",
+                true,
+                "expected type string in aggregation parameter, got scalar"
+        ).test();
+    }
+
+    // Test function calls.
+    @Test
+    void testFunction() {
+        TestItem.of(
+                "time()",
+                Call.of(
+                        getFunction("time"),
+                        Collections.emptyList()
+                )
+        ).test();
+    }
+
+    @Test
+    void testMultiFunctions() {
+        TestItem.of(
+                "floor(some_metric{foo!=\"bar\"})",
+                Call.of(
+                        getFunction("floor"),
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchNotEqual, "foo", "bar"),
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "floor(some_metric{foo!=\"bar\"})",
+                Call.of(
+                        getFunction("floor"),
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchNotEqual, "foo", "bar"),
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "rate(some_metric[5m])",
+                Call.of(
+                        getFunction("rate"),
+                        MatrixSelector.of(
+                                "some_metric",
+                                Duration.ofMinutes(5),
+                                Duration.ZERO,
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "round(some_metric)",
+                Call.of(
+                        getFunction("round"),
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        )
+                )
+        ).test();
+
+        TestItem.of(
+                "round(some_metric, 5)",
+                Call.of(
+                        getFunction("round"),
+                        VectorSelector.of(
+                                "some_metric",
+                                mockLabelMatcher(Matcher.MatchType.MatchEqual, MetricNameLabel, "some_metric")
+                        ),
+                        NumberLiteral.of(5)
+                )
+        ).test();
+    }
+
+    @Test
+    void testErrorMsgInFunctions() {
+        TestItem.of(
+                "floor()",
+                true,
+                "expected 1 argument(s) in call to \"floor\", got 0"
         ).test();
 
 

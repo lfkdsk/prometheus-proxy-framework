@@ -4,6 +4,9 @@ import parser.ast.Expr;
 import parser.ast.value.ValueType;
 
 import java.util.List;
+import java.util.Objects;
+
+import static java.util.stream.Collectors.joining;
 
 public class Function {
     public String name;
@@ -27,5 +30,27 @@ public class Function {
 
     public static Function of(String name, List<ValueType> args, int variadic, ValueType returnType, CallFunction call) {
         return new Function(name, args, variadic, returnType, call);
+    }
+
+    @Override
+    public String toString() {
+        String argsTypes = args.stream().map(ValueType::documentedType).collect(joining(","));
+        String returnTypes = returnType.documentedType();
+        return String.format("Func<%s,%s,%s>", name, argsTypes, returnTypes);
+    }
+
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (Objects.isNull(obj) || !(obj instanceof Function)) {
+            return false;
+        }
+
+        Function other = (Function) obj;
+        return hashCode() == other.hashCode();
     }
 }

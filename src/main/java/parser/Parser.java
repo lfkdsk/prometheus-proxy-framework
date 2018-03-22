@@ -490,7 +490,7 @@ public final class Parser {
         // Might be call without args.
         if (peek().type == itemRightParen) {
             next(); // consume.
-            return Call.of(function, null);
+            return Call.of(function, Collections.emptyList());
         }
 
         List<Expr> args = Lists.newArrayList();
@@ -667,6 +667,16 @@ public final class Parser {
         checkType(expr);
     }
 
+    // expectType checks the type of the node and raises an error if it
+    // is not of the expected type.
+    public void expectType(Expr node, ValueType want, String context) {
+        ValueType type = checkType(node);
+
+        if (type != want) {
+            errorf("expected type %s in %s, got %s", want.documentedType(), context, type.documentedType());
+        }
+    }
+
     public ValueType checkType(Expr expr) {
         ValueType valueType;
         switch (expr.exprType) {
@@ -736,6 +746,28 @@ public final class Parser {
                 }
                 break;
             }
+
+            case AggregateExpr: {
+                AggregateExpr aggregateExpr = (AggregateExpr) expr;
+                if (!aggregateExpr.op.isAggregator()) {
+                    errorf("aggregation operator expected in aggregation expression but got %s", aggregateExpr.op.desc());
+                }
+
+                expectType(aggregateExpr.expr, ValueTypeVector, "aggregation expression");
+
+                ItemType op = aggregateExpr.op;
+                if (op == itemTopK || op == itemBottomK || op == itemQuantile) {
+                    expectType(aggregateExpr.param, ValueTypeScalar, "aggregation parameter");
+                }
+
+                if (op == itemCountValues) {
+                    expectType(aggregateExpr.param, ValueTypeString, "aggregation parameter");
+                }
+
+                break;
+            }
+
+
         }
 
         return valueType;
