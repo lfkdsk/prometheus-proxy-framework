@@ -17,6 +17,7 @@ import parser.ast.value.*;
 import parser.match.Call;
 import parser.match.Function;
 import parser.match.Matcher;
+import utils.Strings;
 import utils.TypeUtils;
 
 import java.time.Duration;
@@ -31,7 +32,6 @@ import static parser.ast.value.VectorMatching.VectorMatchCardinality.*;
 import static parser.match.Functions.getFunction;
 import static parser.match.Labels.MetricName;
 import static utils.TypeUtils.isLabel;
-import static utils.TypeUtils.unquote;
 
 public final class Parser {
     private final QueryLexer lexer;
@@ -365,7 +365,7 @@ public final class Parser {
     public TokenItem expect(ItemType exp, String context) {
         TokenItem item = next();
         if (item.type != exp) {
-            errorf("unexpected %s in %s, expected \"%s\"", item.desc(), context, exp.desc());
+            errorf("unexpected %s in %s, expected %s", item.desc(), context, exp.desc());
         }
 
         return item;
@@ -386,7 +386,7 @@ public final class Parser {
             }
 
             case itemString: {
-                return StringLiteral.of(unquote(item.text));
+                return StringLiteral.of(Strings.unquote(item.text));
             }
 
             case itemLeftBrace: {
@@ -483,7 +483,7 @@ public final class Parser {
         final String ctx = "function call";
         Function function = getFunction(name);
         if (Objects.isNull(function)) {
-            errorf("unknown function with name %s", name);
+            errorf("unknown function with name \"%s\"", name);
         }
 
         expect(itemLeftParen, ctx);
@@ -620,7 +620,7 @@ public final class Parser {
                 );
             }
 
-            String val = unquote(expect(itemString, ctx).text);
+            String val = Strings.unquote(expect(itemString, ctx).text);
             // Map the item to the respective match type.
             Matcher.MatchType matchType = null;
             switch (op) {
@@ -767,7 +767,49 @@ public final class Parser {
                 break;
             }
 
+            case Call: {
+                Call call = (Call) expr;
+                int nargs = call.function.argsTypes.size();
 
+                if (call.function.variadic == 0 && nargs != call.args.size()) {
+                    errorf("expected %d argument(s) in call to \"%s\", got %d", nargs, call.function.name, call.args.size());
+                } else {
+                    int na = nargs - 1;
+                    if (na > call.args.size()) {
+                        errorf("expected at least %d argument(s) in call to \"%s\", got %d", na, call.function.name, call.args.size());
+                    }
+
+                    int nargsMax = na + call.function.variadic;
+                    if (call.function.variadic > 0 && nargsMax < call.args.size()) {
+                        errorf("expected at most %d argument(s) in call to \"%s\", got %d", nargsMax, call.function.name, call.args.size());
+                    }
+
+                    int argTypesLen = call.function.argsTypes.size();
+                    for (int i = 0; i < call.args.size(); i++) {
+                        Expr arg = call.args.get(i);
+
+                        if (i >= argTypesLen) {
+                            i = argTypesLen - 1;
+                        }
+
+                        expectType(arg, call.function.argsTypes.get(i), format("call to function \"%s\"", call.function.name));
+                    }
+                }
+
+                break;
+            }
+
+            case NumberLiteral:
+            case MatrixSelector:
+            case StringLiteral:
+            case VectorSelector: {
+                // Nothing to do for terminals.
+                break;
+            }
+
+//            default: {
+//                errorf("unknown node type: %s", expr.toString());
+//            }
         }
 
         return valueType;

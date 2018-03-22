@@ -135,17 +135,17 @@ public final class TypeUtils {
     }
 
     // TODO this function need more details
-    public static String unquote(String str) {
-        int length = str == null ? -1 : str.length();
-        if (str == null || length == 0)
-            return str;
+    public static String unquote(String s) {
 
-        return str.chars()
-                  .mapToObj(c -> (char) c)
-                  .filter(c -> c != '\'')
-                  .filter(c -> c != '\"')
-                  .filter(c -> c != '`')
-                  .map(String::valueOf)
-                  .collect(joining());
+        if (s != null
+                && ((s.startsWith("\"") && s.endsWith("\""))
+                || (s.startsWith("'") && s.endsWith("'"))
+                || s.startsWith("`") && s.endsWith("`"))) {
+
+            s = s.substring(1, s.length() - 1);
+            s = s.replace("\\", "");
+        }
+
+        return s;
     }
 }

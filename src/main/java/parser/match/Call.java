@@ -15,11 +15,11 @@ import static java.util.stream.Collectors.joining;
 @ExprBinder(type = ExprType.Call)
 public class Call extends Expr {
     public Function function;
-    public List<Expr> exprs;
+    public List<Expr> args;
 
-    private Call(Function function, List<Expr> exprs) {
+    private Call(Function function, List<Expr> args) {
         this.function = function;
-        this.exprs = exprs;
+        this.args = args;
     }
 
     public static Call of(Function function, List<Expr> exprs) {
@@ -40,7 +40,7 @@ public class Call extends Expr {
 
     @Override
     public String toString() {
-        String exprsStr = exprs.stream().map(Expr::toString).collect(joining(","));
+        String exprsStr = args.stream().map(Expr::toString).collect(joining(","));
         return String.format("Call<%s,%s>", exprsStr, function.toString());
     }
 

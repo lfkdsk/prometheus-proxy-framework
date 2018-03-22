@@ -30,9 +30,7 @@ import static java.lang.String.format;
 import static lexer.token.ItemType.*;
 import static lexer.token.ItemType.itemMUL;
 import static lexer.token.ItemType.itemSUB;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static parser.Parser.parser;
 import static parser.ast.value.VectorMatching.VectorMatchCardinality.*;
 import static parser.match.Functions.getFunction;
@@ -1536,13 +1534,13 @@ class ParserTest {
         TestItem.of(
                 "sum some_metric by (test)",
                 true,
-                "unexpected identifier \"some_metric\" in aggregation, expected \"(\""
+                "unexpected identifier \"some_metric\" in aggregation, expected ("
         ).test();
 
         TestItem.of(
                 "sum (some_metric) by test",
                 true,
-                "unexpected identifier \"test\" in grouping opts, expected \"(\""
+                "unexpected identifier \"test\" in grouping opts, expected ("
         ).test();
 
 
@@ -1556,7 +1554,7 @@ class ParserTest {
         TestItem.of(
                 "MIN keep_common (some_metric)",
                 true,
-                "unexpected identifier \"keep_common\" in aggregation, expected \"(\""
+                "unexpected identifier \"keep_common\" in aggregation, expected ("
         ).test();
 
         TestItem.of(
@@ -1574,7 +1572,7 @@ class ParserTest {
         TestItem.of(
                 "topk(some_metric)",
                 true,
-                "unexpected Item<itemRightParen,16,)> in aggregation, expected \",\""
+                "unexpected Item<itemRightParen,16,)> in aggregation, expected ,"
         ).test();
     }
 
@@ -1676,7 +1674,137 @@ class ParserTest {
                 "expected 1 argument(s) in call to \"floor\", got 0"
         ).test();
 
+        TestItem.of(
+                "floor(some_metric, other_metric)",
+                true,
+                "expected 1 argument(s) in call to \"floor\", got 2"
+        ).test();
 
+        TestItem.of(
+                "floor(1)",
+                true,
+                "expected type instant vector in call to function \"floor\", got scalar"
+        ).test();
+
+        TestItem.of(
+                "non_existent_function_far_bar()",
+                true,
+                "unknown function with name \"non_existent_function_far_bar\""
+        ).test();
+
+        TestItem.of(
+                "rate(some_metric)",
+                true,
+                "expected type range vector in call to function \"rate\", got instant vector"
+        ).test();
+
+        //"label_replace(a, `b`, `c\xff`, `d`, `.*`)"
+    }
+
+    // Fuzzing regression tests.
+    @Test
+    void testFuzzingRegression() {
+        TestItem.of(
+                "-=",
+                true,
+                "no valid expression found"
+        ).test();
+
+        TestItem.of(
+                "++-++-+-+-<",
+                true,
+                "no valid expression found"
+        ).test();
+
+        TestItem.of(
+                "e-+=/(0)",
+                true,
+                "no valid expression found"
+        ).test();
+
+        TestItem.of(
+                "-If",
+                true,
+                "no valid expression found"
+        ).test();
+    }
+
+    // String quoting and escape sequence interpretation tests.
+    @Test
+    void testStringQuoting() {
+        TestItem.of(
+                "\"double-quoted string \\\" with escaped quote\"",
+                StringLiteral.of(
+                        "double-quoted string \\\" with escaped quote"
+                )
+        ).test();
+
+        TestItem.of(
+                "'single-quoted string \\' with escaped quote'",
+                StringLiteral.of(
+                        "single-quoted string \' with escaped quote"
+                )
+        ).test();
+
+        TestItem.of(
+                "`backtick-quoted string`",
+                StringLiteral.of(
+                        "backtick-quoted string"
+                )
+        ).test();
+
+        TestItem.of(
+                "\"\\a\\b\\f\\n\\r\\t\\v\\\\\\\" - \\xFF\\377\\u1234\\U00010111\\U0001011111☺\"",
+                StringLiteral.of(
+                        "\\a\\b\\f\\n\\r\\t\\v\\\\\\\" - \\xFF\\377\\u1234\\U00010111\\U0001011111☺"
+                )
+        ).test();
+
+        TestItem.of(
+                "'\\a\\b\\f\\n\\r\\t\\v\\\\\\\' - \\xFF\\377\\u1234\\U00010111\\U0001011111☺'",
+                StringLiteral.of(
+                        "\\a\\b\\f\\n\\r\\t\\v\\\\\' - \\xFF\\377\\u1234\\U00010111\\U0001011111☺"
+                )
+        ).test();
+
+        TestItem.of(
+                "`\\a\\b\\f\\n\\r\\t\\v\\\\\\\"\\' - \\xFF\\377\\u1234\\U00010111\\U0001011111☺`",
+                StringLiteral.of(
+                        "\\a\\b\\f\\n\\r\\t\\v\\\\\\\"\\' - \\xFF\\377\\u1234\\U00010111\\U0001011111☺"
+                )
+        ).test();
+
+        TestItem.of(
+                "`\\\\``",
+                true,
+                "could not parse remaining input \"`\"..."
+        ).test();
+
+        TestItem.of(
+                "\"\\",
+                true,
+                "escape sequence not terminated"
+        ).test();
+
+        TestItem.of(
+                "\"\\c\"",
+                true,
+                "unknown escape sequence 'c'"
+        ).test();
+
+        TestItem.of(
+                "\"\\x.\"",
+                true,
+                "illegal character '.' in escape sequence"
+        ).test();
+    }
+
+    // NaN has no equality. Thus, we need a separate test for it.
+    @Test
+    void testNaNExpression() {
+        Parser parser = parser("NaN");
+        Expr expr = parser.parserExpr();
+        assertTrue(expr instanceof NumberLiteral);
     }
 
     @AfterAll

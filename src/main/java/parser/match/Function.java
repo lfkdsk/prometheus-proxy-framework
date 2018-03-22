@@ -10,7 +10,7 @@ import static java.util.stream.Collectors.joining;
 
 public class Function {
     public String name;
-    public List<ValueType> args;
+    public List<ValueType> argsTypes;
     public int variadic;
     public ValueType returnType;
     public CallFunction call;
@@ -22,7 +22,7 @@ public class Function {
 
     private Function(String name, List<ValueType> args, int variadic, ValueType returnType, CallFunction call) {
         this.name = name;
-        this.args = args;
+        this.argsTypes = args;
         this.variadic = variadic;
         this.returnType = returnType;
         this.call = call;
@@ -34,7 +34,7 @@ public class Function {
 
     @Override
     public String toString() {
-        String argsTypes = args.stream().map(ValueType::documentedType).collect(joining(","));
+        String argsTypes = this.argsTypes.stream().map(ValueType::documentedType).collect(joining(","));
         String returnTypes = returnType.documentedType();
         return String.format("Func<%s,%s,%s>", name, argsTypes, returnTypes);
     }
