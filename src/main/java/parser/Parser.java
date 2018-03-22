@@ -43,7 +43,7 @@ public final class Parser {
         this.tokens = new TokenItem[3];
     }
 
-    public TokenItem peek() {
+    private TokenItem peek() {
         if (peekCount > 0) {
             return tokens[peekCount - 1];
         }
@@ -59,11 +59,11 @@ public final class Parser {
         return tokens[0];
     }
 
-    public void backup() {
+    private void backup() {
         this.peekCount++;
     }
 
-    public TokenItem next() {
+    private TokenItem next() {
         if (peekCount > 0) {
             this.peekCount--;
         } else {
@@ -83,12 +83,12 @@ public final class Parser {
         return tokens[peekCount];
     }
 
-    public void errorf(String format, Object... args) {
+    private void errorf(String format, Object... args) {
         System.err.printf(format + '\n', args);
         error(format(format, args));
     }
 
-    public void error(String errorMessage) {
+    private void error(String errorMessage) {
         throw new ParserException(lexer.lineNumber(), lexer.getPosition(), errorMessage);
     }
 
@@ -114,7 +114,7 @@ public final class Parser {
     }
 
     // expr parses any expression.
-    public Expr expr() {
+    private Expr expr() {
         // Parse the starting expression.
         Expr expr = unaryExpr();
         // Loop through the operations and construct a binary operation tree based
@@ -285,7 +285,6 @@ public final class Parser {
         }
 
         Expr expr = primaryExpr();
-        // TODO last parser
 
         // Expression might be followed by a range selector.
         if (peek().type == itemLeftBracket) {
@@ -330,7 +329,7 @@ public final class Parser {
     //
     //		offset <duration>
     //
-    public Duration offset() {
+    private Duration offset() {
         final String context = "offset";
         // consume this token.
         this.next();
@@ -362,7 +361,7 @@ public final class Parser {
     }
 
     // expect consumes the next token and guarantees it has the required type.
-    public TokenItem expect(ItemType exp, String context) {
+    private TokenItem expect(ItemType exp, String context) {
         TokenItem item = next();
         if (item.type != exp) {
             errorf("unexpected %s in %s, expected %s", item.desc(), context, exp.desc());
@@ -669,7 +668,7 @@ public final class Parser {
 
     // expectType checks the type of the node and raises an error if it
     // is not of the expected type.
-    public void expectType(Expr node, ValueType want, String context) {
+    private void expectType(Expr node, ValueType want, String context) {
         ValueType type = checkType(node);
 
         if (type != want) {
@@ -677,7 +676,7 @@ public final class Parser {
         }
     }
 
-    public ValueType checkType(Expr expr) {
+    private ValueType checkType(Expr expr) {
         ValueType valueType;
         switch (expr.exprType) {
             // TODO case Statements, Expressions, Statement
@@ -799,6 +798,12 @@ public final class Parser {
                 break;
             }
 
+            case ParenExpr: {
+                ParenExpr parenExpr = (ParenExpr) expr;
+                checkType(parenExpr.inner);
+                break;
+            }
+
             case NumberLiteral:
             case MatrixSelector:
             case StringLiteral:
@@ -807,9 +812,9 @@ public final class Parser {
                 break;
             }
 
-//            default: {
-//                errorf("unknown node type: %s", expr.toString());
-//            }
+            //            default: {
+            //                errorf("unknown node type: %s", expr.toString());
+            //            }
         }
 
         return valueType;
@@ -817,5 +822,12 @@ public final class Parser {
 
     public static Parser parser(String input) {
         return new Parser(input);
+    }
+
+    public static Expr parseExpr(String input) {
+        Parser parser = parser(input);
+        Expr expr = parser.parserExpr();
+        parser.typeCheck(expr);
+        return expr;
     }
 }
