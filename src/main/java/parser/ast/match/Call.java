@@ -28,7 +28,6 @@ public class Call extends Expr {
     public static Call of(Function function, Expr... exprs) {
         return new Call(function, Arrays.asList(exprs));
     }
-
     public static Call of(Function function) {
         return new Call(function, Collections.emptyList());
     }
