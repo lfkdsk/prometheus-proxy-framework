@@ -45,7 +45,7 @@ public class LexInsideBrace extends State{
 
             case '=': {
                 Character next = lexer.next();
-                if (next == '~') {
+                if (Objects.nonNull(next) && next == '~') {
                     // Regex
                     lexer.emit(itemEQLRegex);
                     break;
@@ -57,9 +57,9 @@ public class LexInsideBrace extends State{
             }
             case '!': {
                 Character next = lexer.next();
-                if (next == '~') {
+                if (Objects.nonNull(next) && next == '~') {
                     lexer.emit(itemNEQRegex);
-                } else if (next == '=') {
+                } else if (Objects.nonNull(next) && next == '=') {
                     lexer.emit(itemNEQ);
                 } else {
                     return lexer.error("unexpected character after '!' inside braces: %c", next);

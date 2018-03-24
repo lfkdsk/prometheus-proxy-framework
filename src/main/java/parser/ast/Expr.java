@@ -1,8 +1,10 @@
 package parser.ast;
 
+import eval.ExprVisitor;
+import eval.ExprVisitorBinder;
 import parser.ast.value.ValueType;
 
-public abstract class Expr {
+public abstract class Expr implements ExprVisitorBinder {
     public final ExprType exprType;
 
     public Expr() {
@@ -13,6 +15,11 @@ public abstract class Expr {
         }
 
         exprType = binder.type();
+    }
+
+    @Override
+    public <T> T accept(ExprVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     public abstract ValueType valueType();

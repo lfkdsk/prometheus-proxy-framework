@@ -1,6 +1,7 @@
 package lexer.state;
 
 import com.google.common.collect.Maps;
+import lexer.QueryLexer;
 import lexer.token.ItemType;
 
 import java.util.*;
@@ -13,6 +14,15 @@ public final class States {
     public static final Map<String, ItemType> keywordsMap = Maps.newHashMap();
 
     public static final Map<ItemType, String> itemTypeStr = Maps.newHashMap();
+
+    @StatesBinder(binder = LexerStates.LexTerminal)
+    private static class LexTerminal extends State {
+
+        @Override
+        public LexerStates nextTo(QueryLexer lexer) {
+            return LexerStates.LexTerminal;
+        }
+    }
 
     static {
         // initial statements
@@ -29,7 +39,8 @@ public final class States {
                 new LexLineComment(),
                 new LexIdentifier(),
                 new LexValueSequence(),
-                new LexNumber()
+                new LexNumber(),
+                new LexTerminal()
         ).forEach(state -> statementsMap.put(state.getLexerStates(), state));
 
         // initial keyword map

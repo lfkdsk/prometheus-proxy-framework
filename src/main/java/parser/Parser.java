@@ -14,9 +14,9 @@ import parser.ast.expr.UnaryExpr;
 import parser.ast.literal.NumberLiteral;
 import parser.ast.literal.StringLiteral;
 import parser.ast.value.*;
-import parser.match.Call;
-import parser.match.Function;
-import parser.match.Matcher;
+import parser.ast.match.Call;
+import parser.ast.match.Function;
+import parser.ast.match.Matcher;
 import utils.Strings;
 import utils.TypeUtils;
 
@@ -29,8 +29,8 @@ import static java.lang.String.format;
 import static lexer.token.ItemType.*;
 import static parser.ast.value.ValueType.*;
 import static parser.ast.value.VectorMatching.VectorMatchCardinality.*;
-import static parser.match.Functions.getFunction;
-import static parser.match.Labels.MetricName;
+import static parser.ast.match.Functions.getFunction;
+import static parser.ast.match.Labels.MetricName;
 import static utils.TypeUtils.isLabel;
 
 public final class Parser {

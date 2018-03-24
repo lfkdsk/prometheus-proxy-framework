@@ -1,4 +1,4 @@
-package parser.match;
+package parser.ast.match;
 
 import java.util.Objects;
 import java.util.regex.Pattern;

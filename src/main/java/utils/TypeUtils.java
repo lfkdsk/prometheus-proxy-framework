@@ -133,19 +133,4 @@ public final class TypeUtils {
         // return millisecond
         return dur;
     }
-
-    // TODO this function need more details
-    public static String unquote(String s) {
-
-        if (s != null
-                && ((s.startsWith("\"") && s.endsWith("\""))
-                || (s.startsWith("'") && s.endsWith("'"))
-                || s.startsWith("`") && s.endsWith("`"))) {
-
-            s = s.substring(1, s.length() - 1);
-            s = s.replace("\\", "");
-        }
-
-        return s;
-    }
 }

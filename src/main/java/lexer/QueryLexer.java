@@ -15,6 +15,7 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 import static lexer.state.LexerStates.LexStatements;
+import static lexer.state.LexerStates.LexTerminal;
 import static lexer.state.States.statementsMap;
 import static utils.TypeUtils.count;
 import static utils.TypeUtils.isAlphaNumeric;
@@ -163,7 +164,7 @@ public final class QueryLexer {
     public LexerStates error(String format, Object... args) {
         System.err.printf(format + '\n', args);
         this.items.add(TokenItem.of(ItemType.itemError, start, format(format, args)));
-        return null;
+        return LexTerminal;
     }
 
     public TokenItem nextItem() {
@@ -178,7 +179,7 @@ public final class QueryLexer {
     }
 
     public QueryLexer run() {
-        for (state = statementsMap.get(LexStatements); state != null; ) {
+        for (state = statementsMap.get(LexStatements); state.getLexerStates() != LexTerminal; ) {
             state = statementsMap.get(state.nextTo(this));
         }
 

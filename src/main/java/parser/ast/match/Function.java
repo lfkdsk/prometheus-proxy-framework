@@ -1,4 +1,4 @@
-package parser.match;
+package parser.ast.match;
 
 import parser.ast.Expr;
 import parser.ast.value.ValueType;

@@ -1,4 +1,4 @@
-package parser.match;
+package parser.ast.match;
 
 public class Labels {
     public static final String MetricName   = "__name__";

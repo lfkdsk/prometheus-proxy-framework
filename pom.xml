@@ -4,9 +4,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>dashbase</groupId>
+    <name>PrometheusProxy</name>
+    <groupId>io.dashbase</groupId>
     <artifactId>prometheus-proxy-framework</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <dashbase.version>0.1.0</dashbase.version>
+    </properties>
+
+
     <build>
         <plugins>
             <plugin>
@@ -19,7 +29,20 @@
             </plugin>
         </plugins>
     </build>
+
     <dependencies>
+        <dependency>
+            <groupId>io.dashbase</groupId>
+            <artifactId>dashbase-entities</artifactId>
+            <version>${dashbase.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dashbase</groupId>
+            <artifactId>dashbase-client</artifactId>
+            <version>${dashbase.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>

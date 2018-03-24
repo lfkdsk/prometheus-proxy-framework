@@ -20,16 +20,6 @@ public class TokenItem {
         return new TokenItem(type, position, text);
     }
 
-//    func (i item) desc() string {
-//        if _, ok := itemTypeStr[i.typ]; ok {
-//            return i.String()
-//        }
-//        if i.typ == itemEOF {
-//            return i.typ.desc()
-//        }
-//        return fmt.Sprintf("%s %s", i.typ.desc(), i)
-//    }
-
     public String desc() {
         if (itemTypeStr.containsKey(type)) {
             return toString();

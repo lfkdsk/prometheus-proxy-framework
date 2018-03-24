@@ -1,11 +1,7 @@
 package parser;
 
 import exception.ParserException;
-import lexer.token.ItemType;
-import lexer.token.TokenItem;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.ast.Expr;
 import parser.ast.expr.BinaryExpr;
@@ -17,9 +13,8 @@ import parser.ast.value.AggregateExpr;
 import parser.ast.value.MatrixSelector;
 import parser.ast.value.VectorMatching;
 import parser.ast.value.VectorSelector;
-import parser.match.Call;
-import parser.match.Labels;
-import parser.match.Matcher;
+import parser.ast.match.Call;
+import parser.ast.match.Matcher;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -33,9 +28,8 @@ import static lexer.token.ItemType.itemSUB;
 import static org.junit.jupiter.api.Assertions.*;
 import static parser.Parser.parser;
 import static parser.ast.value.VectorMatching.VectorMatchCardinality.*;
-import static parser.match.Functions.getFunction;
-import static parser.match.Labels.MetricName;
-import static parser.match.Labels.MetricNameLabel;
+import static parser.ast.match.Functions.getFunction;
+import static parser.ast.match.Labels.MetricNameLabel;
 
 class ParserTest {
     static int testCount = 0;

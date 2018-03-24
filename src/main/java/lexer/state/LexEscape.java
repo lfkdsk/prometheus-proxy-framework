@@ -68,7 +68,7 @@ public class LexEscape extends State {
             lexer.error("escape sequence is an invalid Unicode code point");
         }
 
-        return null;
+        return LexerStates.LexTerminal;
     }
 
     private int digitVal(Character ch) {

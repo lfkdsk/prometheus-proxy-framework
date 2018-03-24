@@ -3,7 +3,7 @@ package parser.ast.value;
 import parser.ast.Expr;
 import parser.ast.ExprBinder;
 import parser.ast.ExprType;
-import parser.match.Matcher;
+import parser.ast.match.Matcher;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -18,8 +18,6 @@ public class VectorSelector extends Expr {
     public String name;
     public Duration offset;
     public List<Matcher> matchers;
-
-    // TODO matcher and other type
 
     private VectorSelector(String name, List<Matcher> matchers, Duration offset) {
         this.name = name;

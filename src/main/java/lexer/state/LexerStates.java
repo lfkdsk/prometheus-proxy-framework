@@ -14,4 +14,5 @@ public enum LexerStates {
     LexNumber,
     LexKeywordOrIdentifier,
     LexEscape,
+    LexTerminal
 }

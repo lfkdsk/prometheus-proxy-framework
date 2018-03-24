@@ -1,11 +1,9 @@
-package parser.match;
+package parser.ast.match;
 
 import com.google.common.collect.Maps;
-import parser.ast.Expr;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import static parser.ast.value.ValueType.ValueTypeMatrix;

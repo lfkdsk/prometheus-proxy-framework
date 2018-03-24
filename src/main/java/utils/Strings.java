@@ -1,8 +1,5 @@
 package utils;
 
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMap;
-
 public final class Strings {
     // Unquote interprets s as a single-quoted, double-quoted, or backquoted
     // Prometheus query language string literal, returning the string value that s
@@ -34,7 +31,7 @@ public final class Strings {
             return inner;
         }
 
-        if (quote != '\'' && quote != '"') {
+        if (quote != '\'' && quote != '\"') {
             throw new RuntimeException("invalid syntax");
         }
 

@@ -36,7 +36,7 @@ public class LexStatements extends State {
 
             lexer.emit(itemEOF);
             // empty state
-            return null;
+            return LexTerminal;
         }
 
         // Space
