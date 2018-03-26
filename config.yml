@@ -10,9 +10,9 @@ logging:
  level: INFO
  appenders:
      - type: file
-       currentLogFilename: x.log
+       currentLogFilename: /dashbase/prometheus-proxy-framework/logs/prometheus.log
        archive: true
-       archivedLogFilenamePattern: x-%d.log
+       archivedLogFilenamePattern: /dashbase/prometheus-proxy-framework/logs/prometheus-%d.log
        archivedFileCount: 9
        timeZone: UTC
      - type: console

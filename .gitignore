@@ -126,3 +126,6 @@ modules.xml
 target/
 
 # End of https://www.gitignore.io/api/java,jetbrains+all,jetbrains+iml
+
+# pom
+dependency-reduced-pom.xml
