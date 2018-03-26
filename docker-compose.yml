@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  prometheus:
+    image: dashbase/prometheus-proxy-framework:dev
+    ports:
+      - "9090:9090"
+    networks:
+      - prometheus
+    environment:
+      COMMAND: "java -jar prometheus-proxy-framework server config.yml"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://prometheus:9090"]
+      interval: 3m
+      timeout: 20s
+      retries: 3
+    volumes:
+      - prometheus_logs:/dashbase/prometheus-proxy-framework/logs:rw
+
+volumes:
+  prometheus_logs:
+networks:
+  prometheus:
