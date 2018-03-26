@@ -1,8 +1,6 @@
-package io.dashbase.server.response;
+package io.dashbase.web.response;
 
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 public class Response<T> {

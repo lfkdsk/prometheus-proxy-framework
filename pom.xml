@@ -32,6 +32,15 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-jdbi</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.dashbase</groupId>
             <artifactId>dashbase-entities</artifactId>
             <version>${dashbase.version}</version>
@@ -41,6 +50,30 @@
             <groupId>io.dashbase</groupId>
             <artifactId>dashbase-client</artifactId>
             <version>${dashbase.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dashbase</groupId>
+            <artifactId>dashbase-client</artifactId>
+            <version>${dashbase.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dashbase</groupId>
+            <artifactId>dashbase-sdk</artifactId>
+            <version>${dashbase.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dashbase</groupId>
+            <artifactId>dashbase-auth-client</artifactId>
+            <version>${dashbase.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dashbase</groupId>
+            <artifactId>dashbase-idl</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

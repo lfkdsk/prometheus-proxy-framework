@@ -1,4 +1,4 @@
-package io.dashbase.server.response;
+package io.dashbase.web.response;
 
 import lombok.Data;
 
@@ -33,5 +33,5 @@ public class RangeQuery implements BaseResult.QueryResult {
      * ]
      */
     private Map<String, String> metric;
-    private List<List<String>> value;
+    private List<List<Object>> value;
 }

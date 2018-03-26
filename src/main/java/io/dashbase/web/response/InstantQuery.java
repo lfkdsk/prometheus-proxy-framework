@@ -1,4 +1,4 @@
-package io.dashbase.server.response;
+package io.dashbase.web.response;
 
 import lombok.Data;
 
