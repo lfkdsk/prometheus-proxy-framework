@@ -1,6 +1,6 @@
 import lombok.NonNull;
-import parser.Parser;
-import parser.ast.Expr;
+import io.dashbase.parser.Parser;
+import io.dashbase.parser.ast.Expr;
 
 public final class Usage {
     public static Expr parseExpr(@NonNull String input) {
