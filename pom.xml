@@ -3,6 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <prerequisites>
+        <maven>3.0.0</maven>
+    </prerequisites>
 
     <name>PrometheusProxy</name>
     <groupId>io.dashbase</groupId>
@@ -14,14 +17,27 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dashbase.version>0.1.0</dashbase.version>
+        <dropwizard.version>1.2.2</dropwizard.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.dropwizard</groupId>
+                <artifactId>dropwizard-bom</artifactId>
+                <version>${dropwizard.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -43,12 +59,6 @@
         <dependency>
             <groupId>io.dashbase</groupId>
             <artifactId>dashbase-entities</artifactId>
-            <version>${dashbase.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.dashbase</groupId>
-            <artifactId>dashbase-client</artifactId>
             <version>${dashbase.version}</version>
         </dependency>
 
@@ -103,5 +113,28 @@
 
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>snapshot.dashbase.io</id>
+            <url>https://maven.dashbase.io/snapshot</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>repo.dashbase.io</id>
+            <url>https://maven.dashbase.io/release</url>
+        </repository>
+        <repository>
+            <id>sonatype-snapshots</id>
+            <name>Sonatype Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 
 </project>
