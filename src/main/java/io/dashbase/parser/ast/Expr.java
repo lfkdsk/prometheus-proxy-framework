@@ -19,7 +19,7 @@ public abstract class Expr implements ExprVisitorBinder {
 
     @Override
     public <T> T accept(ExprVisitor<T> visitor) {
-        return visitor.visit(this);
+        throw new UnsupportedOperationException("UnSupported Method");
     }
 
     public abstract ValueType valueType();

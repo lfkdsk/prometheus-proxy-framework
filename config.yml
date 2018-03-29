@@ -1,3 +1,9 @@
+apiUrl: https://staging.dashbase.io:9876
+
+# special secret token to be used by dashbase services to authenticate to each other
+# make sure the other services that support this configuration have the shared secret too
+dashbaseInternalServiceToken: "internal-token-ec3a99e1b4b121c0810191eca06c5cb1"
+
 server:
  applicationConnectors:
    - type: http

@@ -1801,12 +1801,6 @@ class ParserTest {
         assertTrue(expr instanceof NumberLiteral);
     }
 
-    @AfterAll
-    static void afterAll() {
-        System.out.println();
-        System.out.println(format("account to %s tests", testCount));
-    }
-
     static void testParser(TestItem test) {
         Parser parser = parser(test.input);
 

@@ -162,7 +162,7 @@ public final class QueryLexer {
     }
 
     public LexerStates error(String format, Object... args) {
-        System.err.printf(format + '\n', args);
+//        System.err.printf(format + '\n', args);
         this.items.add(TokenItem.of(ItemType.itemError, start, format(format, args)));
         return LexTerminal;
     }

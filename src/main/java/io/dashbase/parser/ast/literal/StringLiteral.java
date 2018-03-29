@@ -1,5 +1,6 @@
 package io.dashbase.parser.ast.literal;
 
+import io.dashbase.eval.ExprVisitor;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.ExprBinder;
 import io.dashbase.parser.ast.ExprType;
@@ -45,5 +46,10 @@ public class StringLiteral extends Expr {
     @Override
     public ValueType valueType() {
         return ValueType.ValueTypeString;
+    }
+
+    @Override
+    public <T> T accept(ExprVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 }

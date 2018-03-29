@@ -29,8 +29,4 @@ public interface ExprVisitor<T> {
     T visit(StringLiteral visitor);
 
     T visit(Call visitor);
-
-    default T visit(Expr visitor) {
-        throw new UnsupportedOperationException("Unsupported Eval in Abstract Expr");
-    }
 }

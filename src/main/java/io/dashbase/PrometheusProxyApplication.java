@@ -1,10 +1,18 @@
 package io.dashbase;
 
+import io.dashbase.client.http.HttpClientService;
 import io.dashbase.web.server.PrometheusResource;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
+import lombok.Getter;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Optional;
 
 public class PrometheusProxyApplication extends Application<PrometheusConfig> {
+
+    public static HttpClientService httpService;
 
     @Override
     public String getName() {
@@ -13,6 +21,16 @@ public class PrometheusProxyApplication extends Application<PrometheusConfig> {
 
     @Override
     public void run(PrometheusConfig prometheusConfig, Environment environment) throws Exception {
+        URL url;
+
+        try {
+            url = new URL(prometheusConfig.apiUrl);
+        } catch (MalformedURLException mfue) {
+            throw new RuntimeException("invalid url: " + prometheusConfig.apiUrl);
+        }
+
+        httpService = new HttpClientService(url, null, Optional.ofNullable(prometheusConfig.dashbaseInternalServiceToken));
+
         environment.jersey().register(new PrometheusResource());
     }
 
