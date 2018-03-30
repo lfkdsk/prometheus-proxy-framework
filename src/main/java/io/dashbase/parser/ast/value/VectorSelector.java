@@ -1,5 +1,6 @@
 package io.dashbase.parser.ast.value;
 
+import io.dashbase.eval.ExprVisitor;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.ExprBinder;
 import io.dashbase.parser.ast.ExprType;
@@ -67,5 +68,10 @@ public class VectorSelector extends Expr {
     @Override
     public ValueType valueType() {
         return ValueType.ValueTypeVector;
+    }
+
+    @Override
+    public <T> T accept(ExprVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 }

@@ -1,12 +1,18 @@
 package io.dashbase.web.converter;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import io.dashbase.eval.Evaluator;
+import io.dashbase.eval.EvalVisitor;
+import io.dashbase.eval.QueryEvalVisitor;
+import io.dashbase.merge.util.CountAggregationMerger;
+import io.dashbase.parser.Parser;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.value.Values;
 import io.dashbase.web.response.BaseResult;
 import io.dashbase.web.response.Response;
 import lombok.Getter;
+import rapid.api.AggregationMerger;
+import rapid.api.AggregationRequest;
 import rapid.api.RapidRequest;
 import rapid.api.RapidResponse;
 import rapid.api.query.Query;
@@ -46,8 +52,8 @@ public final class ResponseFactory {
     }
 
     public RapidRequest createRequest() {
-        queryExpr = Evaluator.expr(queryString);
-        query = Evaluator.query(queryExpr);
+        queryExpr = Parser.parseExpr(queryString);
+        query = queryExpr.accept(new QueryEvalVisitor());
         rapidRequest = new RapidRequest();
         rapidRequest.tableNames = Sets.newHashSet("nginx_json");
         rapidRequest.query = query;
@@ -55,7 +61,7 @@ public final class ResponseFactory {
     }
 
     public Response<BaseResult<Values.Value>> instantQuery() {
-        Values.Value scalar = Evaluator.eval(queryExpr, start);
+        Values.Value scalar = queryExpr.accept(new EvalVisitor(this));
         BaseResult<Values.Value> result = new BaseResult<>();
         result.setResult(scalar);
         result.setResultType(queryExpr.valueType().getText());

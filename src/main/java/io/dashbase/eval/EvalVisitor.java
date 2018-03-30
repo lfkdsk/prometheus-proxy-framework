@@ -6,19 +6,24 @@ import io.dashbase.parser.ast.expr.UnaryExpr;
 import io.dashbase.parser.ast.literal.NumberLiteral;
 import io.dashbase.parser.ast.literal.StringLiteral;
 import io.dashbase.parser.ast.match.Call;
+import io.dashbase.parser.ast.match.Matcher;
 import io.dashbase.parser.ast.value.AggregateExpr;
 import io.dashbase.parser.ast.value.MatrixSelector;
 import io.dashbase.parser.ast.value.Values;
 import io.dashbase.parser.ast.value.VectorSelector;
+import io.dashbase.web.converter.ResponseFactory;
+import io.dashbase.web.response.Vector;
 import lombok.Getter;
+
+import java.util.List;
+import java.util.Map;
 
 public final class EvalVisitor implements ExprVisitor<Values.Value> {
 
-    @Getter
-    private long startTimestamp;
+    private ResponseFactory factory;
 
-    public EvalVisitor(long startTimestamp) {
-        this.startTimestamp = startTimestamp;
+    public EvalVisitor(ResponseFactory factory) {
+        this.factory = factory;
     }
 
     @Override
@@ -33,7 +38,17 @@ public final class EvalVisitor implements ExprVisitor<Values.Value> {
 
     @Override
     public Values.Value visit(VectorSelector visitor) {
-        return null;
+        Vector vector = Vector.of();
+        List<Vector.Sample> samples = vector.getSamples();
+
+        for (Matcher matcher : visitor.matchers) {
+            Vector.Sample sample = new Vector.Sample();
+            Map<String, String> metric = sample.getMetric();
+            metric.put(matcher.name, matcher.value);
+            samples.add(sample);
+        }
+
+        return vector;
     }
 
     @Override
@@ -53,7 +68,7 @@ public final class EvalVisitor implements ExprVisitor<Values.Value> {
 
     @Override
     public Values.Value visit(NumberLiteral visitor) {
-        return Values.Scalar.of(startTimestamp, String.valueOf(visitor.number));
+        return Values.Scalar.of(factory.getStart(), String.valueOf(visitor.number));
     }
 
     @Override
