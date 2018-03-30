@@ -1,5 +1,7 @@
 package io.dashbase.parser.ast.value;
 
+import lombok.Getter;
+
 public enum ValueType {
     ValueTypeNone("none"),
     ValueTypeVector("vector"),
@@ -7,6 +9,7 @@ public enum ValueType {
     ValueTypeMatrix("matrix"),
     ValueTypeString("string");
 
+    @Getter
     private String text;
 
     ValueType(String text) {

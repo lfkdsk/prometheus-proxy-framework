@@ -1,20 +1,14 @@
 package io.dashbase.web.server;
 
-import com.google.common.collect.Sets;
-import io.dashbase.eval.Evaluator;
-import io.dashbase.web.response.BaseResult;
-import io.dashbase.web.response.InstantQuery;
+import io.dashbase.utils.DateUtils;
+import io.dashbase.web.converter.ResponseFactory;
 import io.dashbase.web.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rapid.api.RapidRequest;
-import rapid.api.RapidResponse;
-import rapid.api.query.Query;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-
-import static io.dashbase.PrometheusProxyApplication.httpService;
 
 @Path("/api/v1")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -24,17 +18,14 @@ public final class PrometheusResource {
 
     @Path("query")
     @GET
-    public Response<BaseResult<InstantQuery>> query(
+    public Response query(
             @QueryParam("query") String query,
             @QueryParam("time") String time,
-            @QueryParam("timeout") String timeout
+            @QueryParam("timeout") long timeout
     ) throws Exception {
-        Query rapidQuery = Evaluator.eval(query);
-        RapidRequest rapidRequest = new RapidRequest();
-        rapidRequest.tableNames = Sets.newHashSet("nginx_json");
-        rapidRequest.query = rapidQuery;
-        RapidResponse rapidRes = httpService.query(rapidRequest);
-        System.out.println(rapidRes);
-        return null;
+        long timeMillis = time == null ? System.currentTimeMillis() : DateUtils.timeNum(time);
+        ResponseFactory factory = ResponseFactory.of(query, timeMillis);
+        RapidRequest request = factory.createRequest();
+        return factory.instantQuery();
     }
 }
