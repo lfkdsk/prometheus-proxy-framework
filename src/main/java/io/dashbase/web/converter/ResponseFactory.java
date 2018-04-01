@@ -11,10 +11,7 @@ import io.dashbase.parser.ast.value.Values;
 import io.dashbase.web.response.BaseResult;
 import io.dashbase.web.response.Response;
 import lombok.Getter;
-import rapid.api.AggregationMerger;
-import rapid.api.AggregationRequest;
-import rapid.api.RapidRequest;
-import rapid.api.RapidResponse;
+import rapid.api.*;
 import rapid.api.query.Query;
 
 public final class ResponseFactory {
