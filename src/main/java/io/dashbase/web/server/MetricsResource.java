@@ -3,6 +3,8 @@ package io.dashbase.web.server;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import io.dashbase.KafkaSink;
 import io.dashbase.avro.DashbaseEvent;
@@ -11,7 +13,6 @@ import io.dashbase.ter.xform.FilebeatLineParser;
 import okhttp3.OkHttpClient;
 import org.hawkular.agent.prometheus.PrometheusScraper;
 import org.hawkular.agent.prometheus.types.MetricFamily;
-import org.hawkular.agent.prometheus.walkers.CollectorPrometheusMetricsWalker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @Path("/")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -66,20 +68,18 @@ public final class MetricsResource {
     @GET
     @Timed
     public Response metrics() throws Exception {
-//        Request request = new Request.Builder()
-//                .url("http://localhost:9090/metrics")
-//                .build();
-//
-//        okhttp3.Response response = client.newCall(request)
-//                                          .execute();
-//        TextParser textParser = new TextParser();
-//        textParser.run(response.body().charStream());
-        CollectorPrometheusMetricsWalker collector = new CollectorPrometheusMetricsWalker();
         PrometheusScraper prometheusScraper = new PrometheusScraper(new URL("http://localhost:9090/metrics"));
         List<MetricFamily> metricFamilies = prometheusScraper.scrape();
-        System.out.println(metricFamilies.size());
-        insert("dashbase", null, null, null);
 
+        List<Map<String, Object>> datas = utils.getDatas(metricFamilies);
+
+        datas.forEach(v -> {
+            try {
+                kafkaSink.send("dashbase", new ObjectMapper().writeValueAsString(v).getBytes());
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        });
         return Response.ok().entity(null).build();
 
     }
