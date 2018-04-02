@@ -4,8 +4,8 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 public final class DateUtils {
-    private DateUtils() {
-
+    private DateUtils() throws IllegalAccessException {
+        throw new IllegalAccessException("illegal constructor");
     }
 
     private final static DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
