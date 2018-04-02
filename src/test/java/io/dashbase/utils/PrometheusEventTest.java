@@ -2,8 +2,6 @@ package io.dashbase.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.dashbase.web.server.PromEvent;
-import io.dashbase.web.server.utils;
 import org.hawkular.agent.prometheus.types.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -76,22 +74,22 @@ public class PrometheusEventTest {
                         ).build());
             }
         };
-        List<PromEvent> promEvents = new ArrayList<PromEvent>() {{
+        List<PrometheusEvent> prometheusEvents = new ArrayList<PrometheusEvent>() {{
             add(
-                    new PromEvent()
+                    new PrometheusEvent()
                             .setKey("http_request_duration_microseconds")
                             .setLabelHash(labels.hashCode())
                             .setLabels(labels)
                             .setValue(values)
             );
             add(
-                    new PromEvent()
+                    new PrometheusEvent()
                             .setKey("http_request_duration_microseconds")
                             .setLabelHash("#".hashCode())
                             .setValue(values)
             );
             add(
-                    new PromEvent()
+                    new PrometheusEvent()
                             .setKey("http_request_duration_microseconds")
                             .setLabelHash("#".hashCode())
                             .setValue(
@@ -105,7 +103,7 @@ public class PrometheusEventTest {
                             )
             );
             add(
-                    new PromEvent()
+                    new PrometheusEvent()
                             .setKey("http_request_duration_microseconds")
                             .setLabelHash("#".hashCode())
                             .setValue(new HashMap<String, Object>() {{
@@ -119,10 +117,10 @@ public class PrometheusEventTest {
         }};
 
         for (int i = 0; i < metricFamilies.size(); i++) {
-            List<PromEvent> promEventList = utils.toPromEvents(metricFamilies.get(i));
-            Assertions.assertEquals(1, promEventList.size());
-            Assertions.assertEquals(new ObjectMapper().writeValueAsString(promEventList.get(0)),
-                    new ObjectMapper().writeValueAsString(promEvents.get(i)));
+            List<PrometheusEvent> prometheusEventList = PrometheusUtils.toPromEvents(metricFamilies.get(i));
+            Assertions.assertEquals(1, prometheusEventList.size());
+            Assertions.assertEquals(new ObjectMapper().writeValueAsString(prometheusEventList.get(0)),
+                    new ObjectMapper().writeValueAsString(prometheusEvents.get(i)));
         }
     }
 

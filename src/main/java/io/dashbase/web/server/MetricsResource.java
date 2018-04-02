@@ -10,6 +10,7 @@ import io.dashbase.KafkaSink;
 import io.dashbase.avro.DashbaseEvent;
 import io.dashbase.ter.xform.DashbaseEventHydrant;
 import io.dashbase.ter.xform.FilebeatLineParser;
+import io.dashbase.utils.PrometheusUtils;
 import okhttp3.OkHttpClient;
 import org.hawkular.agent.prometheus.PrometheusScraper;
 import org.hawkular.agent.prometheus.types.MetricFamily;
@@ -71,12 +72,12 @@ public final class MetricsResource {
         PrometheusScraper prometheusScraper = new PrometheusScraper(new URL("http://localhost:9090/metrics"));
         List<MetricFamily> metricFamilies = prometheusScraper.scrape();
 
-        List<Map<String, Object>> datas = utils.getDatas(metricFamilies);
+        List<Map<String, Object>> datas = PrometheusUtils.getDatas(metricFamilies);
 
         datas.forEach(v -> {
             try {
-                kafkaSink.send("dashbase", new ObjectMapper().writeValueAsString(v).getBytes());
-            } catch (JsonProcessingException e) {
+                kafkaSink.send("dashbase", utils.addInformation(v).binaryValue());
+            } catch (java.io.IOException e) {
                 e.printStackTrace();
             }
         });
