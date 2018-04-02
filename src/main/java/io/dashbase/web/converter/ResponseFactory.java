@@ -12,6 +12,7 @@ import io.dashbase.web.response.BaseResult;
 import io.dashbase.web.response.Response;
 import lombok.Getter;
 import rapid.api.*;
+import rapid.api.query.EqualityQuery;
 import rapid.api.query.Query;
 
 public final class ResponseFactory {
@@ -49,11 +50,14 @@ public final class ResponseFactory {
     }
 
     public RapidRequest createRequest() {
-        queryExpr = Parser.parseExpr(queryString);
-        query = queryExpr.accept(new QueryEvalVisitor());
         rapidRequest = new RapidRequest();
-        rapidRequest.tableNames = Sets.newHashSet("nginx_json");
-        rapidRequest.query = query;
+        queryExpr = Parser.parseExpr(queryString);
+        query = queryExpr.accept(new QueryEvalVisitor(this));
+        rapidRequest.tableNames = Sets.newHashSet("_metrics");
+//        rapidRequest.query = new EqualityQuery("__name__", "jvm.cpu.usage.percent.value");
+        rapidRequest.timeRangeFilter = new TimeRangeFilter();
+        rapidRequest.timeRangeFilter.startTimeInSec = 1522670146;
+        rapidRequest.timeRangeFilter.endTimeInSec = 1522670206;
         return rapidRequest;
     }
 

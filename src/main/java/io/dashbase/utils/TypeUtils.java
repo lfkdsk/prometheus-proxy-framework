@@ -52,7 +52,7 @@ public final class TypeUtils {
      * isAlpha reports whether r is an alphabetic or underscore.
      **/
     public static boolean isAlpha(Character r) {
-        return Objects.nonNull(r) && (r == '_' || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z'));
+        return Objects.nonNull(r) && (r == '_' || r == '.' || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z'));
     }
 
     /**

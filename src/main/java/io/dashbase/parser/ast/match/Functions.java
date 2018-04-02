@@ -1,6 +1,11 @@
 package io.dashbase.parser.ast.match;
 
 import com.google.common.collect.Maps;
+import io.dashbase.parser.ast.value.VectorSelector;
+import io.dashbase.web.converter.ResponseFactory;
+import rapid.api.AggregationRequest;
+import rapid.api.NumericAggregationRequest;
+import rapid.api.RapidRequest;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,13 +18,25 @@ import static io.dashbase.parser.ast.value.ValueType.ValueTypeVector;
 public final class Functions {
     public static final Map<String, Function> functions = Maps.newHashMap();
 
+    public final static Function.CallFunction<AggregationRequest, ResponseFactory>
+            avgOverTime = (exprs, factory) -> {
+
+        NumericAggregationRequest request = new NumericAggregationRequest();
+        request.type = "avg";
+        request.col = ((VectorSelector) exprs.get(0)).name;
+
+        RapidRequest rapidRequest = factory.getRapidRequest();
+        rapidRequest.aggregations.put(request.col, request);
+        return request;
+    };
+
     static {
         functions.put("time", Function.of(
                 "time",
                 Collections.emptyList(),
                 0,
                 ValueTypeScalar,
-                exprs -> null // TODO : all your function here
+                null // TODO : all your function here
         ));
 
 
@@ -28,7 +45,7 @@ public final class Functions {
                 Arrays.asList(ValueTypeVector),
                 0,
                 ValueTypeVector,
-                exprs -> null // TODO : all your function here
+                null // TODO : all your function here
         ));
 
         functions.put("rate", Function.of(
@@ -36,7 +53,7 @@ public final class Functions {
                 Arrays.asList(ValueTypeMatrix),
                 0,
                 ValueTypeVector,
-                exprs -> null // TODO : all your function here
+                null // TODO : all your function here
         ));
 
         functions.put("round", Function.of(
@@ -44,7 +61,15 @@ public final class Functions {
                 Arrays.asList(ValueTypeVector, ValueTypeScalar),
                 1,
                 ValueTypeVector,
-                exprs -> null // TODO : all your function here
+                null // TODO : all your function here
+        ));
+
+        functions.put("avgs", Function.of(
+                "avgs",
+                Collections.singletonList(ValueTypeVector),
+                0,
+                ValueTypeVector,
+                avgOverTime
         ));
     }
 

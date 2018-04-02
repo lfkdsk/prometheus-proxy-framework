@@ -16,8 +16,8 @@ public class Function {
     public CallFunction call;
 
     @FunctionalInterface
-    public interface CallFunction {
-        Expr call(List<Expr> exprs);
+    public interface CallFunction<T, E> {
+        T call(List<Expr> exprs, E value);
     }
 
     private Function(String name, List<ValueType> args, int variadic, ValueType returnType, CallFunction call) {
