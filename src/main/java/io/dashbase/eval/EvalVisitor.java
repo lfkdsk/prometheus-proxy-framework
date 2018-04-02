@@ -38,17 +38,18 @@ public final class EvalVisitor implements ExprVisitor<Values.Value> {
 
     @Override
     public Values.Value visit(VectorSelector visitor) {
-        Vector vector = Vector.of();
-        List<Vector.Sample> samples = vector.getSamples();
+        // TODO: need result value to get more specs
+//        Vector vector = Vector.of();
+//        List<Vector.Sample> samples = vector.getSamples();
+//
+//        for (Matcher matcher : visitor.matchers) {
+//            Vector.Sample sample = new Vector.Sample();
+//            Map<String, String> metric = sample.getMetric();
+//            metric.put(matcher.name, matcher.value);
+//            samples.add(sample);
+//        }
 
-        for (Matcher matcher : visitor.matchers) {
-            Vector.Sample sample = new Vector.Sample();
-            Map<String, String> metric = sample.getMetric();
-            metric.put(matcher.name, matcher.value);
-            samples.add(sample);
-        }
-
-        return vector;
+        return null;
     }
 
     @Override

@@ -29,4 +29,30 @@ public interface ExprVisitor<T> {
     T visit(StringLiteral visitor);
 
     T visit(Call visitor);
+
+    default T visit(Expr visitor) {
+        switch (visitor.exprType) {
+            case Call:
+                return visit((Call) visitor);
+            case ParenExpr:
+                return visit((ParenExpr) visitor);
+            case UnaryExpr:
+                return visit((UnaryExpr) visitor);
+            case BinaryExpr:
+                return visit((BinaryExpr) visitor);
+            case AggregateExpr:
+                return visit((AggregateExpr) visitor);
+            case NumberLiteral:
+                return visit((NumberLiteral) visitor);
+            case StringLiteral:
+                return visit((StringLiteral) visitor);
+            case MatrixSelector:
+                return visit((MatrixSelector) visitor);
+            case VectorSelector:
+                return visit((VectorSelector) visitor);
+            default: {
+                throw new RuntimeException("Unsupported Expr Type " + visitor.toString());
+            }
+        }
+    }
 }
