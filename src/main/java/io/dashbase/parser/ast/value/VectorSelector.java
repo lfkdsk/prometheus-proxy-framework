@@ -76,8 +76,8 @@ public class VectorSelector extends Expr {
         return visitor.visit(this);
     }
 
-    public static String metricName(VectorSelector selector) {
-        for (Matcher matcher : selector.matchers) {
+    public static String metricName(List<Matcher> selector) {
+        for (Matcher matcher : selector) {
             if (matcher.name.equals(MetricNameLabel)) {
                 return matcher.value;
             }

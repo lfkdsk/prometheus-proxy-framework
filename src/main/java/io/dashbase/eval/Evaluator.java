@@ -54,8 +54,8 @@ public final class Evaluator {
 
     private Evaluator(@NonNull String queryString, long start, long end, long interval) {
         this.queryString = queryString;
-        this.start = start;
-        this.end = end;
+        this.start = start / 1000;
+        this.end = end / 1000;
         this.interval = interval;
         this.requestBuilder = RapidRequestBuilder.builder();
         this.request = requestBuilder.getRequest();
@@ -84,12 +84,25 @@ public final class Evaluator {
             throw new IllegalArgumentException("Instant Query start time should equalTo end time but " + " [start-time] " + start + " [end-time] " + end);
         }
 
+        // Note: end = start + 1 but in prometheus start == end
+        requestBuilder.setTimeRangeFilter(start, end + 1);
+        return runQuery();
+    }
+
+    public Response runRangeQuery() {
+        if (start == end) {
+            throw new IllegalArgumentException("Range Query start time shouldn't equalTo end time but " + " [start-time] " + start + " [end-time] " + end);
+        }
+
+        // Note: end = start + 1 but in prometheus start == end
+        requestBuilder.setTimeRangeFilter(start, end);
+        return runQuery();
+    }
+
+    private Response runQuery() {
         queryExpr = parse();
         reqConVisitor = ReqConVisitor.of(this);
         reqConVisitor.visit(queryExpr);
-
-        // Note: end = start + 1 but in prometheus start == end
-        requestBuilder.setTimeRangeFilter(1522757895, 1522757896);
 
         request = requestBuilder.create();
 

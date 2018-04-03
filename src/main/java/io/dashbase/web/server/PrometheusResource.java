@@ -48,6 +48,9 @@ public final class PrometheusResource {
             @QueryParam("step") int step,
             @QueryParam("timeout") long timeout
     ) {
-        return null;
+        long startTimeMillis = Objects.isNull(start) ? System.currentTimeMillis() : DateUtils.timeNum(start);
+        long endTimeMillis = Objects.isNull(end) ? System.currentTimeMillis() : DateUtils.timeNum(end);
+        Evaluator evaluator = Evaluator.of(query, startTimeMillis, endTimeMillis);
+        return evaluator.runRangeQuery();
     }
 }

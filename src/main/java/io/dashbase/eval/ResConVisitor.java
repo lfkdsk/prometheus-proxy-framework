@@ -67,7 +67,7 @@ public final class ResConVisitor implements ExprVoidVisitor {
     @Override
     public void visit(VectorSelector visitor) {
         List<Values.Sample> samples = Lists.newArrayList();
-        String metricName = metricName(visitor);
+        String metricName = metricName(visitor.matchers);
 
         for (RapidHit hit : response.hits) {
             Map<String, List<String>> fields = hit.payload.fields;

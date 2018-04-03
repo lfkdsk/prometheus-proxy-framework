@@ -15,6 +15,8 @@ import io.dashbase.parser.ast.value.VectorSelector;
 import io.dashbase.utils.RapidRequestBuilder;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import rapid.api.NumericAggregationRequest;
+import rapid.api.TSAggregationRequest;
 import rapid.api.query.Conjunction;
 import rapid.api.query.EqualityQuery;
 import rapid.api.query.Query;
@@ -23,6 +25,7 @@ import rapid.api.query.StringQuery;
 import java.util.List;
 
 import static io.dashbase.parser.ast.match.Labels.MetricName;
+import static io.dashbase.parser.ast.value.VectorSelector.metricName;
 import static java.lang.String.format;
 
 public final class ReqConVisitor implements ExprVoidVisitor {
@@ -48,14 +51,59 @@ public final class ReqConVisitor implements ExprVoidVisitor {
 
     @Override
     public void visit(MatrixSelector visitor) {
+        conSubQueries(visitor.matchers);
 
+        String metricName = metricName(visitor.matchers);
+        TSAggregationRequest baseTS = new TSAggregationRequest();
+        baseTS.bucketSize = Math.toIntExact(visitor.range.getSeconds());
+
+        NumericAggregationRequest avgInSec = new NumericAggregationRequest();
+        avgInSec.type = "avg";
+        avgInSec.col = metricName;
+
+        baseTS.subRequest = avgInSec;
+        builder.addAggregation(metricName, baseTS);
     }
 
     @Override
     public void visit(VectorSelector visitor) {
+        conSubQueries(visitor.matchers);
+    }
+
+    @Override
+    public void visit(BinaryExpr visitor) {
+
+    }
+
+    @Override
+    public void visit(ParenExpr visitor) {
+
+    }
+
+    @Override
+    public void visit(UnaryExpr visitor) {
+
+    }
+
+    @Override
+    public void visit(NumberLiteral visitor) {
+
+    }
+
+    @Override
+    public void visit(StringLiteral visitor) {
+
+    }
+
+    @Override
+    public void visit(Call visitor) {
+
+    }
+
+    private void conSubQueries(List<Matcher> marchers) {
         List<Query> subQueries = Lists.newArrayList();
 
-        for (Matcher matcher : visitor.matchers) {
+        for (Matcher matcher : marchers) {
             if (matcher.name.equals(MetricName)) {
                 builder.addFields(matcher.value);
                 continue;
@@ -92,35 +140,5 @@ public final class ReqConVisitor implements ExprVoidVisitor {
             Conjunction conjunction = new Conjunction(subQueries);
             builder.addQuery(conjunction);
         }
-    }
-
-    @Override
-    public void visit(BinaryExpr visitor) {
-
-    }
-
-    @Override
-    public void visit(ParenExpr visitor) {
-
-    }
-
-    @Override
-    public void visit(UnaryExpr visitor) {
-
-    }
-
-    @Override
-    public void visit(NumberLiteral visitor) {
-
-    }
-
-    @Override
-    public void visit(StringLiteral visitor) {
-
-    }
-
-    @Override
-    public void visit(Call visitor) {
-
     }
 }
