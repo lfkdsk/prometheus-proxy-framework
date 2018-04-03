@@ -1,6 +1,6 @@
 package io.dashbase.parser.ast.value;
 
-import io.dashbase.eval.ExprVisitor;
+import io.dashbase.eval.binder.ExprVisitor;
 import io.dashbase.lexer.token.ItemType;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.ExprBinder;

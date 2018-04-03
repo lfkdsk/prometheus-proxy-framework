@@ -1,13 +1,12 @@
 package io.dashbase.parser.ast.literal;
 
-import io.dashbase.eval.ExprVisitor;
+import io.dashbase.eval.binder.ExprVisitor;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.ExprBinder;
 import io.dashbase.parser.ast.ExprType;
 import io.dashbase.parser.ast.value.ValueType;
 
 import java.text.NumberFormat;
-import java.util.Objects;
 
 import static io.dashbase.parser.ast.value.ValueType.ValueTypeScalar;
 

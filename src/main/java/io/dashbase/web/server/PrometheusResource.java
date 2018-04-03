@@ -74,9 +74,9 @@ public final class PrometheusResource {
         //        RapidRequest request = factory.createRequest();
         //        return factory.instantQuery();
 
-        ResponseFactory factory = ResponseFactory.of(query, 1522670199);
-        RapidResponse response = httpService.query(factory.createRequest());
-        System.out.println(response);
+//        ResponseFactory factory = ResponseFactory.of(query, 1522670199);
+//        RapidResponse response = httpService.query(factory.createRequest());
+//        System.out.println(response);
         return null;
     }
 

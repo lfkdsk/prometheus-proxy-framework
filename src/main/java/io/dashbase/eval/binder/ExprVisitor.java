@@ -1,4 +1,4 @@
-package io.dashbase.eval;
+package io.dashbase.eval.binder;
 
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.expr.BinaryExpr;

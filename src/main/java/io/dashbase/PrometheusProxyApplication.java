@@ -1,10 +1,14 @@
 package io.dashbase;
 
+import com.google.common.collect.Sets;
 import io.dashbase.client.http.HttpClientService;
 import io.dashbase.web.server.PrometheusResource;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
 import lombok.Getter;
+import rapid.api.RapidRequest;
+import rapid.api.RapidResponse;
+import rapid.api.TimeRangeFilter;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,6 +36,15 @@ public class PrometheusProxyApplication extends Application<PrometheusConfig> {
         httpService = new HttpClientService(url, null, Optional.ofNullable(prometheusConfig.dashbaseInternalServiceToken));
 
         environment.jersey().register(new PrometheusResource());
+
+        RapidRequest rapidRequest = new RapidRequest();
+        rapidRequest.tableNames = Sets.newHashSet("_metrics");
+        rapidRequest.fields = Sets.newHashSet("jvm.cpu.usage.percent.value");
+        rapidRequest.timeRangeFilter = new TimeRangeFilter();
+        rapidRequest.timeRangeFilter.startTimeInSec = 1522757895;
+        rapidRequest.timeRangeFilter.endTimeInSec = 1522757896;
+        RapidResponse response = httpService.query(rapidRequest);
+        System.out.println(response);
     }
 
     public static void main(String[] args) throws Exception {

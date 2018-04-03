@@ -1,22 +1,17 @@
 package io.dashbase.eval;
 
+import io.dashbase.eval.binder.ExprVisitor;
 import io.dashbase.parser.ast.expr.BinaryExpr;
 import io.dashbase.parser.ast.expr.ParenExpr;
 import io.dashbase.parser.ast.expr.UnaryExpr;
 import io.dashbase.parser.ast.literal.NumberLiteral;
 import io.dashbase.parser.ast.literal.StringLiteral;
 import io.dashbase.parser.ast.match.Call;
-import io.dashbase.parser.ast.match.Matcher;
 import io.dashbase.parser.ast.value.AggregateExpr;
 import io.dashbase.parser.ast.value.MatrixSelector;
 import io.dashbase.parser.ast.value.Values;
 import io.dashbase.parser.ast.value.VectorSelector;
 import io.dashbase.web.converter.ResponseFactory;
-import io.dashbase.web.response.Vector;
-import lombok.Getter;
-
-import java.util.List;
-import java.util.Map;
 
 public final class EvalVisitor implements ExprVisitor<Values.Value> {
 

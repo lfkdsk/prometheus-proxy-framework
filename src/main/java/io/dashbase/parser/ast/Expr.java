@@ -1,7 +1,7 @@
 package io.dashbase.parser.ast;
 
-import io.dashbase.eval.ExprVisitor;
-import io.dashbase.eval.ExprVisitorBinder;
+import io.dashbase.eval.binder.ExprVisitor;
+import io.dashbase.eval.binder.ExprVisitorBinder;
 import io.dashbase.parser.ast.value.ValueType;
 
 public abstract class Expr implements ExprVisitorBinder {

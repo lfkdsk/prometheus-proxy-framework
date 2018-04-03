@@ -1,6 +1,7 @@
 package io.dashbase.eval;
 
 import com.google.common.collect.Lists;
+import io.dashbase.eval.binder.ExprVisitor;
 import io.dashbase.lexer.token.ItemType;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.ExprType;
@@ -11,15 +12,12 @@ import io.dashbase.parser.ast.literal.NumberLiteral;
 import io.dashbase.parser.ast.literal.StringLiteral;
 import io.dashbase.parser.ast.match.Call;
 import io.dashbase.parser.ast.match.Function;
-import io.dashbase.parser.ast.match.Functions;
 import io.dashbase.parser.ast.match.Matcher;
 import io.dashbase.parser.ast.value.AggregateExpr;
 import io.dashbase.parser.ast.value.MatrixSelector;
 import io.dashbase.parser.ast.value.ValueType;
 import io.dashbase.parser.ast.value.VectorSelector;
 import io.dashbase.web.converter.ResponseFactory;
-import rapid.api.AggregationRequest;
-import rapid.api.RapidRequest;
 import rapid.api.query.Conjunction;
 import rapid.api.query.EqualityQuery;
 import rapid.api.query.Query;
