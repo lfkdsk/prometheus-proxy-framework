@@ -4,6 +4,9 @@ apiUrl: https://staging.dashbase.io:9876
 # make sure the other services that support this configuration have the shared secret too
 dashbaseInternalServiceToken: "internal-token-ec3a99e1b4b121c0810191eca06c5cb1"
 
+job: "prometheus"
+instance: "localhost:9090"
+
 server:
  applicationConnectors:
    - type: http

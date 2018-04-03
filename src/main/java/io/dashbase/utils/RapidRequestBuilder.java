@@ -36,6 +36,11 @@ public final class RapidRequestBuilder {
         return this;
     }
 
+    public RapidRequestBuilder addFields(String... fields) {
+        this.request.fields.addAll(Arrays.asList(fields));
+        return this;
+    }
+
     public RapidRequestBuilder addQuery(Query query) {
         this.request.query = query;
         return this;

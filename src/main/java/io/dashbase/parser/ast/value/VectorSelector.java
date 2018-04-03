@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static io.dashbase.parser.ast.match.Labels.MetricNameLabel;
 import static java.util.stream.Collectors.joining;
 
 @ExprBinder(type = ExprType.VectorSelector)
@@ -73,5 +74,15 @@ public class VectorSelector extends Expr {
     @Override
     public <T> T accept(ExprVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    public static String metricName(VectorSelector selector) {
+        for (Matcher matcher : selector.matchers) {
+            if (matcher.name.equals(MetricNameLabel)) {
+                return matcher.value;
+            }
+        }
+
+        return null;
     }
 }

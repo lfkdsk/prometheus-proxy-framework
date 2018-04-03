@@ -17,7 +17,6 @@ import io.dashbase.parser.ast.value.AggregateExpr;
 import io.dashbase.parser.ast.value.MatrixSelector;
 import io.dashbase.parser.ast.value.ValueType;
 import io.dashbase.parser.ast.value.VectorSelector;
-import io.dashbase.web.converter.ResponseFactory;
 import rapid.api.query.Conjunction;
 import rapid.api.query.EqualityQuery;
 import rapid.api.query.Query;
@@ -30,15 +29,6 @@ import static java.lang.String.format;
 
 public final class QueryEvalVisitor implements ExprVisitor<Query> {
 
-    private ResponseFactory factory;
-
-    public QueryEvalVisitor() {
-
-    }
-
-    public QueryEvalVisitor(ResponseFactory factory) {
-        this.factory = factory;
-    }
 
     @Override
     public Query visit(AggregateExpr visitor) {
@@ -146,7 +136,7 @@ public final class QueryEvalVisitor implements ExprVisitor<Query> {
         }
 
         Function.CallFunction function = visitor.function.call;
-        function.call(visitor.args, factory);
+//        function.call(visitor.args, factory);
 
         return new Conjunction(subQueries);
     }

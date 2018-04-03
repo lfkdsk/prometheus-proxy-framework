@@ -12,6 +12,7 @@ import io.dashbase.parser.ast.value.MatrixSelector;
 import io.dashbase.parser.ast.value.VectorSelector;
 
 public interface ExprVoidVisitor {
+
     void visit(AggregateExpr visitor);
 
     void visit(MatrixSelector visitor);
