@@ -44,11 +44,15 @@ public final class TypeUtils {
         return Objects.nonNull(r) && ('0' <= r && r <= '9');
     }
 
+    public static boolean isDigitOrUnaryOp(Character r) {
+        return isDigit(r) || r == '-' || r == '+';
+    }
+
     /**
      * isAlpha reports whether r is an alphabetic or underscore.
      **/
     public static boolean isAlpha(Character r) {
-        return Objects.nonNull(r) && (r == '_' || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z'));
+        return Objects.nonNull(r) && (r == '_' || r == '.' || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z'));
     }
 
     /**
@@ -66,6 +70,20 @@ public final class TypeUtils {
 
         for (char c : text.substring(1).toCharArray()) {
             if (!isAlphaNumeric(c)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean isDigit(String text) {
+        if (text.length() == 0 || !isDigitOrUnaryOp(text.charAt(0))) {
+            return false;
+        }
+
+        for (char c : text.substring(1).toCharArray()) {
+            if (!isDigit(c)) {
                 return false;
             }
         }

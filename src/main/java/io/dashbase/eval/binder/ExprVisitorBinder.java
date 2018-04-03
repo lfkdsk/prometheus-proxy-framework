@@ -1,4 +1,4 @@
-package io.dashbase.eval;
+package io.dashbase.eval.binder;
 
 public interface ExprVisitorBinder {
     default <T> T accept(ExprVisitor<T> visitor) {

@@ -1,5 +1,9 @@
 package io.dashbase.parser.ast.match;
 
+import com.google.common.collect.Lists;
+
+import java.util.List;
+
 public class Labels {
     public static final String MetricName   = "__name__";
 //    public static final String AlertName    = "alertname";
@@ -62,4 +66,17 @@ public class Labels {
 //    public static final String QuantileLabel = "quantile";
 
 
+//    func hashForLabels(lset labels.Labels, names ...string) uint64 {
+//        cm := make(labels.Labels, 0, len(names))
+//
+//        for _, l := range lset {
+//            for _, n := range names {
+//                if l.Name == n {
+//                    cm = append(cm, l)
+//                    break
+//                }
+//            }
+//        }
+//        return cm.Hash()
+//    }
 }

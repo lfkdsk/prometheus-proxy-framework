@@ -1,5 +1,6 @@
 package io.dashbase.parser.ast.match;
 
+import io.dashbase.eval.binder.ExprVisitor;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.ExprBinder;
 import io.dashbase.parser.ast.ExprType;
@@ -56,5 +57,10 @@ public class Call extends Expr {
 
         Call other = (Call) obj;
         return hashCode() == other.hashCode();
+    }
+
+    @Override
+    public <T> T accept(ExprVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 }

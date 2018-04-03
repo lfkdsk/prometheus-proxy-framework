@@ -1,10 +1,12 @@
 package io.dashbase.parser.ast.literal;
 
-import io.dashbase.eval.ExprVisitor;
+import io.dashbase.eval.binder.ExprVisitor;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.ExprBinder;
 import io.dashbase.parser.ast.ExprType;
 import io.dashbase.parser.ast.value.ValueType;
+
+import java.text.NumberFormat;
 
 import static io.dashbase.parser.ast.value.ValueType.ValueTypeScalar;
 
@@ -45,6 +47,16 @@ public class NumberLiteral extends Expr {
     @Override
     public ValueType valueType() {
         return ValueTypeScalar;
+    }
+
+    public String numberValue() {
+        return trimZeroOfNumber(number);
+    }
+
+    public static String trimZeroOfNumber(Object value) {
+        NumberFormat fmt = NumberFormat.getInstance();
+        fmt.setGroupingUsed(false);
+        return fmt.format(value);
     }
 
     @Override

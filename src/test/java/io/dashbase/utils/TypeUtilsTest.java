@@ -16,7 +16,7 @@ class TypeUtilsTest {
 
     @Test
     void testTypeStr() {
-        String ctx = "5y";
-        assertEquals(Duration.ofDays(5 * 365), TypeUtils.parseDuration(ctx));
+        String ctx = "5d";
+        assertEquals(Duration.ofDays(5), TypeUtils.parseDuration(ctx));
     }
 }

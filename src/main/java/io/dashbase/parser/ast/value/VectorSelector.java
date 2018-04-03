@@ -1,6 +1,6 @@
 package io.dashbase.parser.ast.value;
 
-import io.dashbase.eval.ExprVisitor;
+import io.dashbase.eval.binder.ExprVisitor;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.ExprBinder;
 import io.dashbase.parser.ast.ExprType;
@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static io.dashbase.parser.ast.match.Labels.MetricNameLabel;
 import static java.util.stream.Collectors.joining;
 
 @ExprBinder(type = ExprType.VectorSelector)
@@ -73,5 +74,15 @@ public class VectorSelector extends Expr {
     @Override
     public <T> T accept(ExprVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    public static String metricName(List<Matcher> selector) {
+        for (Matcher matcher : selector) {
+            if (matcher.name.equals(MetricNameLabel)) {
+                return matcher.value;
+            }
+        }
+
+        return null;
     }
 }
