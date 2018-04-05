@@ -1,20 +1,11 @@
 package io.dashbase.utils;
 
-import com.google.common.collect.Lists;
-
-import java.math.BigInteger;
 import java.time.Duration;
-import java.time.temporal.TemporalUnit;
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 
 public final class TypeUtils {
     private TypeUtils() throws IllegalAccessException {
@@ -120,7 +111,7 @@ public final class TypeUtils {
                    .count();
     }
 
-    public static Pattern durationRE = Pattern.compile("^([0-9]+)(y|w|d|h|m|s|ms)$");
+    private static Pattern durationRE = Pattern.compile("^([0-9]+)(y|w|d|h|m|s|ms)$");
 
     public static Duration parseDuration(String durationStr) {
         Matcher matches = durationRE.matcher(durationStr);

@@ -22,6 +22,6 @@ public final class DateUtils {
             return Long.parseLong(timestamp);
         }
 
-        return dateTimeFormatter.withZoneUTC().parseMillis(timestamp);
+        return dateTimeFormatter.withZoneUTC().parseMillis(timestamp) / 1000;
     }
 }

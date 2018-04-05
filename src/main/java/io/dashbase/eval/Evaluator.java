@@ -1,8 +1,10 @@
 package io.dashbase.eval;
 
+import com.google.common.collect.Lists;
 import io.dashbase.parser.Parser;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.utils.RapidRequestBuilder;
+import io.dashbase.value.Result;
 import io.dashbase.web.response.Response;
 import lombok.Getter;
 import lombok.NonNull;
@@ -11,8 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rapid.api.RapidRequest;
 import rapid.api.RapidResponse;
-import rapid.api.query.Query;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,10 +41,17 @@ public final class Evaluator {
     private Response prometheusRes;
 
     @Getter
-    private long start, end, interval;
+    private long start, end;
+
+    @Getter
+    private Duration interval;
 
     @Getter
     private RapidRequestBuilder requestBuilder;
+
+    @Getter
+    @Setter
+    private Result result;
 
     @Getter
     private ReqConVisitor reqConVisitor;
@@ -53,10 +62,10 @@ public final class Evaluator {
     @Getter
     private List<Evaluator> subEvaluators;
 
-    private Evaluator(@NonNull String queryString, long start, long end, long interval) {
+    private Evaluator(@NonNull String queryString, long start, long end, Duration interval) {
         this.queryString = queryString;
-        this.start = start / 1000;
-        this.end = end / 1000;
+        this.start = start;
+        this.end = end;
         this.interval = interval;
         this.requestBuilder = RapidRequestBuilder.builder();
         this.request = requestBuilder.getRequest();
@@ -64,11 +73,11 @@ public final class Evaluator {
     }
 
     public static Evaluator of(String queryString, long time) {
-        return new Evaluator(queryString, time, time, 0);
+        return new Evaluator(queryString, time, time, Duration.ZERO);
     }
 
-    public static Evaluator of(String queryString, long start, long end) {
-        return new Evaluator(queryString, start, end, end - start);
+    public static Evaluator of(String queryString, long start, long end, Duration interval) {
+        return new Evaluator(queryString, start, end, interval);
     }
 
     private void initEvaluator() {
@@ -76,7 +85,7 @@ public final class Evaluator {
         // TODO other default
     }
 
-    public Expr parse() {
+    private Expr parse() {
         return Parser.parseExpr(queryString);
     }
 
@@ -91,7 +100,7 @@ public final class Evaluator {
     }
 
     public Response runRangeQuery() {
-        if (start == end) {
+        if (start == end || start > end) {
             throw new IllegalArgumentException("Range Query start time shouldn't equalTo end time but " + " [start-time] " + start + " [end-time] " + end);
         }
 
@@ -120,10 +129,31 @@ public final class Evaluator {
         resConVisitor = ResConVisitor.of(this);
         resConVisitor.visit(queryExpr);
 
+        prometheusRes = result.toResponse();
         return prometheusRes;
     }
 
     private Response rangeQuery() {
-        return null;
+        long intervalSeconds = interval.getSeconds();
+        long steps = (end - start) / intervalSeconds;
+
+        subEvaluators = Lists.newLinkedList();
+
+        for (long start = this.start; start <= end; start += intervalSeconds) {
+            Evaluator subEvaluator = Evaluator.of(queryString, start);
+            subEvaluators.add(subEvaluator);
+            // run query
+            subEvaluator.runInstantQuery();
+            Result subResult = subEvaluator.getResult();
+
+            if (Objects.isNull(result)) {
+                result = subResult;
+            } else {
+                result = result.combine(subResult);
+            }
+        }
+
+        prometheusRes = result.toResponse();
+        return prometheusRes;
     }
 }

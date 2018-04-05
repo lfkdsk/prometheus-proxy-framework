@@ -2,8 +2,6 @@ package io.dashbase.eval;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import io.dashbase.PrometheusConfig;
-import io.dashbase.PrometheusProxyApplication;
 import io.dashbase.eval.binder.ExprVoidVisitor;
 import io.dashbase.parser.ast.expr.BinaryExpr;
 import io.dashbase.parser.ast.expr.ParenExpr;
@@ -11,29 +9,21 @@ import io.dashbase.parser.ast.expr.UnaryExpr;
 import io.dashbase.parser.ast.literal.NumberLiteral;
 import io.dashbase.parser.ast.literal.StringLiteral;
 import io.dashbase.parser.ast.match.Call;
-import io.dashbase.parser.ast.match.Labels;
 import io.dashbase.parser.ast.match.Matcher;
 import io.dashbase.parser.ast.value.AggregateExpr;
 import io.dashbase.parser.ast.value.MatrixSelector;
 import io.dashbase.parser.ast.value.VectorSelector;
-import io.dashbase.utils.RapidRequestBuilder;
-import io.dashbase.value.Values;
-import io.dashbase.web.response.BaseResult;
-import io.dashbase.web.response.Response;
+import io.dashbase.value.*;
 import lombok.Getter;
-import org.apache.kafka.common.MetricName;
 import org.jetbrains.annotations.NotNull;
 import rapid.api.RapidHit;
 import rapid.api.RapidRequest;
 import rapid.api.RapidResponse;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static io.dashbase.parser.ast.value.VectorSelector.metricName;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 public final class ResConVisitor implements ExprVoidVisitor {
@@ -61,12 +51,43 @@ public final class ResConVisitor implements ExprVoidVisitor {
 
     @Override
     public void visit(MatrixSelector visitor) {
+        List<Series> seriesList = Lists.newArrayList();
+        String metricName = metricName(visitor.matchers);
 
+        List<Point> points = Lists.newArrayList();
+        Map<String, String> labels = Maps.newHashMap();
+        for (RapidHit hit : response.hits) {
+            Map<String, List<String>> fields = hit.payload.fields;
+
+            // TODO: labels should get from response
+            for (Matcher matcher : visitor.matchers) {
+                labels.put(matcher.name, matcher.value);
+            }
+
+            List<String> values = fields.getOrDefault(metricName, singletonList("0"));
+            Point point = Point.of(hit.timeInSeconds, values.get(0));
+            points.add(point);
+        }
+
+        Series series = Series.of(points, labels);
+        seriesList.add(series);
+
+//        BaseResult<List<Series>> result = new BaseResult<>();
+//        result.setResult(metrics);
+//        result.setResultType("metrics");
+//        Response<BaseResult<List<Series>>> response = new Response<>();
+//        response.setData(result);
+//        evaluator.setPrometheusRes(response);
+
+        Matrix matrix = Matrix.of(seriesList);
+        evaluator.setResult(matrix);
     }
 
     @Override
     public void visit(VectorSelector visitor) {
-        List<Values.Sample> samples = Lists.newArrayList();
+        // Note: List of Sample == Vector (result of VectorSelector)
+        List<Sample> samples = Lists.newArrayList();
+        Vector vector = Vector.of(samples);
         String metricName = metricName(visitor.matchers);
 
         for (RapidHit hit : response.hits) {
@@ -79,17 +100,19 @@ public final class ResConVisitor implements ExprVoidVisitor {
             }
 
             List<String> values = fields.getOrDefault(metricName, singletonList("0"));
-            Values.Point point = Values.Point.of(hit.timeInSeconds, values.get(0));
-            Values.Sample sample = Values.Sample.of(point, metrics);
+            Point point = Point.of(hit.timeInSeconds, values.get(0));
+            Sample sample = Sample.of(point, metrics);
             samples.add(sample);
         }
 
-        BaseResult<List<Values.Sample>> result = new BaseResult<>();
-        result.setResult(samples);
-        result.setResultType("vector");
-        Response<BaseResult<List<Values.Sample>>> response = new Response<>();
-        response.setData(result);
-        evaluator.setPrometheusRes(response);
+//        BaseResult<List<Sample>> result = new BaseResult<>();
+//        result.setResult(samples);
+//        result.setResultType("vector");
+//        Response<BaseResult<List<Sample>>> response = new Response<>();
+//        response.setData(result);
+//        evaluator.setPrometheusRes(response);
+
+        evaluator.setResult(vector);
     }
 
     @Override
