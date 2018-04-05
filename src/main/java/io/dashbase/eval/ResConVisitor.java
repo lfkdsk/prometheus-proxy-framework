@@ -3,6 +3,7 @@ package io.dashbase.eval;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.dashbase.eval.binder.ExprVoidVisitor;
+import io.dashbase.lexer.token.ItemType;
 import io.dashbase.parser.ast.expr.BinaryExpr;
 import io.dashbase.parser.ast.expr.ParenExpr;
 import io.dashbase.parser.ast.expr.UnaryExpr;
@@ -16,12 +17,11 @@ import io.dashbase.parser.ast.value.VectorSelector;
 import io.dashbase.value.*;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import rapid.api.RapidHit;
-import rapid.api.RapidRequest;
-import rapid.api.RapidResponse;
+import rapid.api.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.dashbase.parser.ast.value.VectorSelector.metricName;
 import static java.util.Collections.singletonList;
@@ -46,7 +46,31 @@ public final class ResConVisitor implements ExprVoidVisitor {
 
     @Override
     public void visit(AggregateExpr visitor) {
+        if (visitor.op == ItemType.itemAvg) {
+            VectorSelector selector = (VectorSelector) visitor.expr;
+            String metricName = metricName(selector.matchers);
 
+            AggregationResponse subRes = response.aggregations.get(metricName);
+            if (Objects.nonNull(subRes) && subRes instanceof TSAggregationResponse) {
+                List<TSAggregationResponse.TSBucket> buckets = ((TSAggregationResponse) subRes).buckets;
+                List<Sample> samples = Lists.newArrayList();
+                Map<String, String> labels = Maps.newHashMap();
+
+                for (Matcher matcher : selector.matchers) {
+                    labels.put(matcher.name, matcher.value);
+                }
+
+                for (TSAggregationResponse.TSBucket bucket : buckets) {
+                    NumericAggregationResponse numeric = (NumericAggregationResponse) bucket.response;
+                    Point point = Point.of(bucket.timeInSec, String.valueOf(numeric.value));
+                    Sample sample = Sample.of(point, labels);
+                    samples.add(sample);
+                }
+
+                Vector vector = Vector.of(samples);
+                evaluator.setResult(vector);
+            }
+        }
     }
 
     @Override
@@ -71,13 +95,6 @@ public final class ResConVisitor implements ExprVoidVisitor {
 
         Series series = Series.of(points, labels);
         seriesList.add(series);
-
-//        BaseResult<List<Series>> result = new BaseResult<>();
-//        result.setResult(metrics);
-//        result.setResultType("metrics");
-//        Response<BaseResult<List<Series>>> response = new Response<>();
-//        response.setData(result);
-//        evaluator.setPrometheusRes(response);
 
         Matrix matrix = Matrix.of(seriesList);
         evaluator.setResult(matrix);
@@ -104,13 +121,6 @@ public final class ResConVisitor implements ExprVoidVisitor {
             Sample sample = Sample.of(point, metrics);
             samples.add(sample);
         }
-
-//        BaseResult<List<Sample>> result = new BaseResult<>();
-//        result.setResult(samples);
-//        result.setResultType("vector");
-//        Response<BaseResult<List<Sample>>> response = new Response<>();
-//        response.setData(result);
-//        evaluator.setPrometheusRes(response);
 
         evaluator.setResult(vector);
     }

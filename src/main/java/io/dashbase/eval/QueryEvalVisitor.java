@@ -27,6 +27,7 @@ import java.util.List;
 import static io.dashbase.parser.ast.literal.NumberLiteral.trimZeroOfNumber;
 import static java.lang.String.format;
 
+@Deprecated
 public final class QueryEvalVisitor implements ExprVisitor<Query> {
 
 
