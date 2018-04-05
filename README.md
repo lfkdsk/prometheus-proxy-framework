@@ -1,11 +1,3 @@
 # prometheus-proxy-framework
 
-Support Expr Lexer Syntax In Prometheus.
-
-``` java
-
-    public static Expr parseExpr(@NonNull String input) {
-        return Parser.parseExpr(input);
-    }
-
-```
+![](http://circleci-badges-max.herokuapp.com/img/lfkdsk/prometheus-proxy-framework?token=dc94800c924f37b90703909b2e1bfd3ad0940729)
