@@ -52,9 +52,7 @@ public final class RapidRequestBuilder {
     }
 
     public RapidRequestBuilder setTimeRangeFilter(long start, long end) {
-        this.request.timeRangeFilter = new TimeRangeFilter();
-        this.request.timeRangeFilter.startTimeInSec = start;
-        this.request.timeRangeFilter.endTimeInSec = end;
+        this.request.timeRangeFilter = new TimeRangeFilter(start, end);
         return this;
     }
 

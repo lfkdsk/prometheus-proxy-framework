@@ -8,6 +8,7 @@ import java.util.Objects;
 import static io.dashbase.lexer.state.LexerStates.*;
 import static io.dashbase.lexer.state.States.keywordsMap;
 import static io.dashbase.utils.TypeUtils.isAlphaNumeric;
+import static io.dashbase.utils.TypeUtils.isKeyWordOrIdentifier;
 
 @StatesBinder(binder = LexKeywordOrIdentifier)
 public class LexKeywordOrIdentifier extends State {
@@ -16,7 +17,7 @@ public class LexKeywordOrIdentifier extends State {
     public LexerStates nextTo(QueryLexer lexer) {
         for (; ; ) {
             Character ch = lexer.next();
-            if (Objects.nonNull(ch) && (isAlphaNumeric(ch) || ch == ':')) {
+            if (Objects.nonNull(ch) && (isKeyWordOrIdentifier(ch) || ch == ':')) {
                 continue;
             }
 

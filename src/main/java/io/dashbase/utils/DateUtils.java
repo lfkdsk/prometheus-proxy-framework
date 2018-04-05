@@ -1,7 +1,10 @@
 package io.dashbase.utils;
 
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+
+import static io.dashbase.utils.TypeUtils.isLong;
 
 public final class DateUtils {
     private DateUtils() throws IllegalAccessException {
@@ -14,7 +17,11 @@ public final class DateUtils {
         return dateTimeFormatter.print(System.currentTimeMillis());
     }
 
-    public static long timeNum(String timestamp) {
+    public static long timeNum(@NotNull String timestamp) {
+        if (isLong(timestamp)) {
+            return Long.parseLong(timestamp);
+        }
+
         return dateTimeFormatter.withZoneUTC().parseMillis(timestamp);
     }
 }

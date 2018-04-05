@@ -13,7 +13,7 @@ import java.util.Map;
 public final class Values {
 
     // Scalar is a data point that's explicitly not associated with a metric.
-    @JsonSerialize(using = ScalarSerializer.class)
+    @JsonSerialize(using = Scalar.ScalarSerializer.class)
     public static class Scalar {
         public final long timestamp;
         public final String value;
@@ -26,15 +26,15 @@ public final class Values {
         public static Scalar of(long timestamp, String value) {
             return new Scalar(timestamp, value);
         }
-    }
 
-    public static class ScalarSerializer extends JsonSerializer<Scalar> {
-        @Override
-        public void serialize(Scalar value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-            List<Object> result = Lists.newLinkedList();
-            result.add(value.timestamp);
-            result.add(value.value);
-            gen.writeObject(result);
+        public static class ScalarSerializer extends JsonSerializer<Scalar> {
+            @Override
+            public void serialize(Scalar value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+                List<Object> result = Lists.newLinkedList();
+                result.add(value.timestamp);
+                result.add(value.value);
+                gen.writeObject(result);
+            }
         }
     }
 

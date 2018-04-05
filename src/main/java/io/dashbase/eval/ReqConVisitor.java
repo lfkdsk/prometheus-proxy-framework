@@ -53,16 +53,21 @@ public final class ReqConVisitor implements ExprVoidVisitor {
     public void visit(MatrixSelector visitor) {
         conSubQueries(visitor.matchers);
 
-        String metricName = metricName(visitor.matchers);
-        TSAggregationRequest baseTS = new TSAggregationRequest();
-        baseTS.bucketSize = Math.toIntExact(visitor.range.getSeconds());
+//        String metricName = metricName(visitor.matchers);
+//        TSAggregationRequest baseTS = new TSAggregationRequest();
+//        baseTS.bucketSize = Math.toIntExact(visitor.range.getSeconds());
+//
+//        NumericAggregationRequest avgInSec = new NumericAggregationRequest();
+//        avgInSec.type = "avg";
+//        avgInSec.col = metricName;
+//
+//        baseTS.subRequest = avgInSec;
+//        builder.addAggregation(metricName, baseTS);
 
-        NumericAggregationRequest avgInSec = new NumericAggregationRequest();
-        avgInSec.type = "avg";
-        avgInSec.col = metricName;
+        // [5m] -> start - (5m -> 300s)
+        long startTime = evaluator.getStart() - visitor.range.getSeconds();
+        long endTime = evaluator.getEnd();
 
-        baseTS.subRequest = avgInSec;
-        builder.addAggregation(metricName, baseTS);
     }
 
     @Override

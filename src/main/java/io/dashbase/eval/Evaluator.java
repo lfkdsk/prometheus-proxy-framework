@@ -13,20 +13,20 @@ import rapid.api.RapidRequest;
 import rapid.api.RapidResponse;
 import rapid.api.query.Query;
 
+import java.util.List;
 import java.util.Objects;
 
 import static io.dashbase.PrometheusProxyApplication.httpService;
 
 public final class Evaluator {
+    private final static Logger logger = LoggerFactory.getLogger(Evaluator.class);
+
     @Getter
     @NonNull
     private String queryString;
 
     @Getter
     private Expr queryExpr;
-
-    @Getter
-    private Query query;
 
     @Getter
     private RapidResponse response;
@@ -50,7 +50,8 @@ public final class Evaluator {
     @Getter
     private ResConVisitor resConVisitor;
 
-    private final static Logger logger = LoggerFactory.getLogger(Evaluator.class);
+    @Getter
+    private List<Evaluator> subEvaluators;
 
     private Evaluator(@NonNull String queryString, long start, long end, long interval) {
         this.queryString = queryString;
@@ -86,7 +87,7 @@ public final class Evaluator {
 
         // Note: end = start + 1 but in prometheus start == end
         requestBuilder.setTimeRangeFilter(start, end + 1);
-        return runQuery();
+        return instantQuery();
     }
 
     public Response runRangeQuery() {
@@ -94,12 +95,11 @@ public final class Evaluator {
             throw new IllegalArgumentException("Range Query start time shouldn't equalTo end time but " + " [start-time] " + start + " [end-time] " + end);
         }
 
-        // Note: end = start + 1 but in prometheus start == end
         requestBuilder.setTimeRangeFilter(start, end);
-        return runQuery();
+        return rangeQuery();
     }
 
-    private Response runQuery() {
+    private Response instantQuery() {
         queryExpr = parse();
         reqConVisitor = ReqConVisitor.of(this);
         reqConVisitor.visit(queryExpr);
@@ -121,5 +121,9 @@ public final class Evaluator {
         resConVisitor.visit(queryExpr);
 
         return prometheusRes;
+    }
+
+    private Response rangeQuery() {
+        return null;
     }
 }

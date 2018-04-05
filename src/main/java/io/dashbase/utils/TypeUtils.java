@@ -52,7 +52,7 @@ public final class TypeUtils {
      * isAlpha reports whether r is an alphabetic or underscore.
      **/
     public static boolean isAlpha(Character r) {
-        return Objects.nonNull(r) && (r == '_' || r == '.' || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z'));
+        return Objects.nonNull(r) && (r == '_' || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z'));
     }
 
     /**
@@ -60,6 +60,10 @@ public final class TypeUtils {
      */
     public static boolean isAlphaNumeric(Character r) {
         return Objects.nonNull(r) && (isAlpha(r) || isDigit(r));
+    }
+
+    public static boolean isKeyWordOrIdentifier(Character r) {
+        return Objects.nonNull(r) && (isAlpha(r) || isDigit(r) || r == '.');
     }
 
     // isLabel reports whether the string can be used as label.
@@ -91,6 +95,19 @@ public final class TypeUtils {
         return true;
     }
 
+    public static boolean isLong(String text) {
+        if (text.length() == 0) {
+            return true;
+        }
+
+        for (char c : text.toCharArray()) {
+            if (!isDigit(c)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     // Other Utils
