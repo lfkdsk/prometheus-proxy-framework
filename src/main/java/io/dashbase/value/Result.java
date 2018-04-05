@@ -14,8 +14,20 @@ public interface Result {
     ResultType resultType();
 
     enum ResultType {
-        Matrix,
-        Vector,
-        Scalar
+        matrix("matrix"),
+        vector("vector"),
+        scalar("scalar"),
+        string("string");
+
+        private String text;
+
+        ResultType(java.lang.String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return text;
+        }
     }
 }

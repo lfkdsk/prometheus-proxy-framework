@@ -1,16 +1,25 @@
 package io.dashbase.web.server;
 
+import com.google.common.collect.Sets;
 import io.dashbase.eval.Evaluator;
 import io.dashbase.utils.DateUtils;
 import io.dashbase.utils.TypeUtils;
 import io.dashbase.web.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rapid.api.RapidServiceInfo;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
+
+import static io.dashbase.PrometheusProxyApplication.httpService;
+import static io.dashbase.web.response.Response.ErrorType.errorBadData;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 
 @Path("/api/v1")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -48,8 +57,30 @@ public final class PrometheusResource {
     ) {
         long startTimeMillis = Objects.isNull(start) ? System.currentTimeMillis() : DateUtils.timeNum(start);
         long endTimeMillis = Objects.isNull(end) ? System.currentTimeMillis() : DateUtils.timeNum(end);
-        Duration interval = TypeUtils.parseDuration(step);
+        Duration interval = TypeUtils.parseDurationOrSecond(step);
         Evaluator evaluator = Evaluator.of(query, startTimeMillis, endTimeMillis, interval);
         return evaluator.runRangeQuery();
+    }
+
+    private static Pattern labelNamePattern = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
+
+    @Path("label/{label_name}/values")
+    @GET
+    public Response values(
+            @PathParam("label_name") String labelName
+    ) throws Exception {
+        if (!labelNamePattern.matcher(labelName).matches()) {
+            return Response.error(errorBadData, format("invalid label name: %s", labelName));
+        }
+
+        RapidServiceInfo info = httpService.getInfo(Sets.newHashSet("_metrics"));
+        List<String> labels = info.schema.fields.stream()
+                                                .filter(field -> field.isNumeric)
+//                                                .filter(field -> field.name.contains(labelName))
+                                                .filter(field -> field.name.startsWith("jvm"))
+                                                .map(field -> field.name)
+                                                .collect(toList());
+
+        return Response.of(labels);
     }
 }

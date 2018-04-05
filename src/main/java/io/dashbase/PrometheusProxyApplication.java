@@ -1,19 +1,13 @@
 package io.dashbase;
 
-import com.google.common.collect.Sets;
 import io.dashbase.client.http.HttpClientService;
 import io.dashbase.web.server.PrometheusResource;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
-import lombok.Getter;
-import rapid.api.RapidRequest;
-import rapid.api.RapidResponse;
-import rapid.api.TimeRangeFilter;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class PrometheusProxyApplication extends Application<PrometheusConfig> {
 
@@ -27,7 +21,7 @@ public class PrometheusProxyApplication extends Application<PrometheusConfig> {
     }
 
     @Override
-    public void run(PrometheusConfig prometheusConfig, Environment environment) throws Exception {
+    public void run(PrometheusConfig prometheusConfig, Environment environment) {
         URL url;
 
         try {

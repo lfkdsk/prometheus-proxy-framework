@@ -1,10 +1,11 @@
 package io.dashbase.eval;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import io.dashbase.parser.Parser;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.utils.RapidRequestBuilder;
-import io.dashbase.value.Result;
+import io.dashbase.value.*;
 import io.dashbase.web.response.Response;
 import lombok.Getter;
 import lombok.NonNull;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static io.dashbase.PrometheusProxyApplication.httpService;
+import static io.dashbase.utils.CollectionUtils.distinct;
+import static io.dashbase.utils.CollectionUtils.sort;
 
 public final class Evaluator {
     private final static Logger logger = LoggerFactory.getLogger(Evaluator.class);
@@ -129,6 +132,10 @@ public final class Evaluator {
         resConVisitor = ResConVisitor.of(this);
         resConVisitor.visit(queryExpr);
 
+        if (Objects.isNull(result)) {
+            return Response.empty();
+        }
+
         prometheusRes = result.toResponse();
         return prometheusRes;
     }
@@ -139,6 +146,8 @@ public final class Evaluator {
 
         subEvaluators = Lists.newLinkedList();
 
+        Series series = Series.of(Lists.newArrayList(), Maps.newHashMap());
+
         for (long start = this.start; start <= end; start += intervalSeconds) {
             Evaluator subEvaluator = Evaluator.of(queryString, start);
             subEvaluators.add(subEvaluator);
@@ -148,10 +157,43 @@ public final class Evaluator {
 
             if (Objects.isNull(result)) {
                 result = subResult;
+                continue;
             } else {
                 result = result.combine(subResult);
             }
+
+            switch (result.resultType()) {
+                case vector: {
+                    Vector vector = (Vector) result;
+                    for (Sample sample : vector.list) {
+                        // TODO matrics should be hash => to get multi-type values now we just get same array
+                        if (series.metric.size() == 0) {
+                            series.metric.putAll(sample.metric);
+                        }
+
+                        series.values.add(sample.value);
+                    }
+                    break;
+                }
+            }
         }
+
+        if (Objects.isNull(result) || result.resultType() != Result.ResultType.matrix) {
+
+            series = Series.of(
+                    sort(distinct(series.values)),
+                    series.metric
+            );
+
+            return Response.of(
+                    Result.ResultType.matrix,
+                    Matrix.of(Lists.newArrayList(series))
+            );
+        }
+
+        // sorted result
+        Matrix matrix = (Matrix) result;
+        result = matrix.sorted();
 
         prometheusRes = result.toResponse();
         return prometheusRes;

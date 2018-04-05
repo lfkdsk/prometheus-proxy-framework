@@ -2,6 +2,7 @@ package io.dashbase.eval;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.dashbase.PrometheusProxyApplication;
 import io.dashbase.eval.binder.ExprVoidVisitor;
 import io.dashbase.lexer.token.ItemType;
 import io.dashbase.parser.ast.expr.BinaryExpr;
@@ -60,6 +61,9 @@ public final class ResConVisitor implements ExprVoidVisitor {
                     labels.put(matcher.name, matcher.value);
                 }
 
+                labels.put("instance", PrometheusProxyApplication.config.getInstance());
+                labels.put("job", PrometheusProxyApplication.config.getJob());
+
                 for (TSAggregationResponse.TSBucket bucket : buckets) {
                     NumericAggregationResponse numeric = (NumericAggregationResponse) bucket.response;
                     Point point = Point.of(bucket.timeInSec, String.valueOf(numeric.value));
@@ -88,6 +92,9 @@ public final class ResConVisitor implements ExprVoidVisitor {
                 labels.put(matcher.name, matcher.value);
             }
 
+            labels.put("instance", PrometheusProxyApplication.config.getInstance());
+            labels.put("job", PrometheusProxyApplication.config.getJob());
+
             List<String> values = fields.getOrDefault(metricName, singletonList("0"));
             Point point = Point.of(hit.timeInSeconds, values.get(0));
             points.add(point);
@@ -115,6 +122,9 @@ public final class ResConVisitor implements ExprVoidVisitor {
             for (Matcher matcher : visitor.matchers) {
                 metrics.put(matcher.name, matcher.value);
             }
+
+            metrics.put("instance", PrometheusProxyApplication.config.getInstance());
+            metrics.put("job", PrometheusProxyApplication.config.getJob());
 
             List<String> values = fields.getOrDefault(metricName, singletonList("0"));
             Point point = Point.of(hit.timeInSeconds, values.get(0));
