@@ -113,6 +113,14 @@ public final class TypeUtils {
 
     private static Pattern durationRE = Pattern.compile("^([0-9]+)(y|w|d|h|m|s|ms)$");
 
+    public static Duration parseDurationOrSecond(String durationStr) {
+        if (TypeUtils.isLong(durationStr)) {
+            return Duration.ofSeconds(Long.parseLong(durationStr));
+        }
+
+        return parseDuration(durationStr);
+    }
+
     public static Duration parseDuration(String durationStr) {
         Matcher matches = durationRE.matcher(durationStr);
 

@@ -9,6 +9,8 @@ import io.dashbase.web.response.Response;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @JsonSerialize(using = Matrix.MatrixSerializer.class)
 public class Matrix implements Result {
@@ -24,7 +26,7 @@ public class Matrix implements Result {
 
     @Override
     public ResultType resultType() {
-        return ResultType.Matrix;
+        return ResultType.matrix;
     }
 
     public static class MatrixSerializer extends JsonSerializer<Matrix> {
@@ -36,7 +38,7 @@ public class Matrix implements Result {
 
     @Override
     public Result combine(Result other) {
-        if (other.resultType() != ResultType.Matrix) {
+        if (Objects.isNull(other) || other.resultType() != ResultType.matrix) {
             return this;
         }
 
@@ -48,9 +50,18 @@ public class Matrix implements Result {
     public Response<BaseResult<Matrix>> toResponse() {
         BaseResult<Matrix> result = new BaseResult<>();
         result.setResult(this);
-        result.setResultType("metrics");
+        result.setResultType(ResultType.matrix);
         Response<BaseResult<Matrix>> response = new Response<>();
         response.setData(result);
         return response;
+    }
+
+    public Matrix sorted() {
+        List<Series> temp = list.stream()
+                                .map(Series::sorted)
+                                .collect(Collectors.toList());
+        list.clear();
+        list.addAll(temp);
+        return this;
     }
 }

@@ -10,6 +10,7 @@ import io.dashbase.web.response.Response;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 
 @JsonSerialize(using = Vector.VectorSerializer.class)
@@ -26,7 +27,7 @@ public class Vector implements Result{
 
     @Override
     public ResultType resultType() {
-        return ResultType.Vector;
+        return ResultType.vector;
     }
 
     public static class VectorSerializer extends JsonSerializer<Vector> {
@@ -40,7 +41,7 @@ public class Vector implements Result{
 
     @Override
     public Result combine(Result other) {
-        if (other.resultType() != ResultType.Vector) {
+        if (Objects.isNull(other) || other.resultType() != ResultType.vector) {
             return this;
         }
 
@@ -52,7 +53,7 @@ public class Vector implements Result{
     public Response<BaseResult<Vector>> toResponse() {
         BaseResult<Vector> result = new BaseResult<>();
         result.setResult(this);
-        result.setResultType("vector");
+        result.setResultType(ResultType.vector);
         Response<BaseResult<Vector>> response = new Response<>();
         response.setData(result);
         return response;
