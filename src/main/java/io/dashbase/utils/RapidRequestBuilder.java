@@ -8,12 +8,16 @@ import rapid.api.query.Conjunction;
 import rapid.api.query.Query;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
 
 public final class RapidRequestBuilder {
 
     @Getter
     private RapidRequest request = new RapidRequest();
+
+    @Getter
+    private Map<String, AggregationRequest> aggregations = request.aggregations;
 
     private RapidRequestBuilder() { }
 

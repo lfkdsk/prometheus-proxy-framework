@@ -73,7 +73,7 @@ public final class Evaluator {
     }
 
     public static Evaluator of(String queryString, long time) {
-        return new Evaluator(queryString, time, time, Duration.ZERO);
+        return new Evaluator(queryString, time, time, Duration.ofSeconds(1));
     }
 
     public static Evaluator of(String queryString, long start, long end, Duration interval) {
