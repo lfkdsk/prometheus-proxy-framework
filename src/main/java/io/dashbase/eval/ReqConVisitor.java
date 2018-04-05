@@ -15,8 +15,6 @@ import io.dashbase.parser.ast.value.VectorSelector;
 import io.dashbase.utils.RapidRequestBuilder;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import rapid.api.NumericAggregationRequest;
-import rapid.api.TSAggregationRequest;
 import rapid.api.query.Conjunction;
 import rapid.api.query.EqualityQuery;
 import rapid.api.query.Query;
@@ -25,7 +23,6 @@ import rapid.api.query.StringQuery;
 import java.util.List;
 
 import static io.dashbase.parser.ast.match.Labels.MetricName;
-import static io.dashbase.parser.ast.value.VectorSelector.metricName;
 import static java.lang.String.format;
 
 public final class ReqConVisitor implements ExprVoidVisitor {
@@ -53,16 +50,21 @@ public final class ReqConVisitor implements ExprVoidVisitor {
     public void visit(MatrixSelector visitor) {
         conSubQueries(visitor.matchers);
 
-        String metricName = metricName(visitor.matchers);
-        TSAggregationRequest baseTS = new TSAggregationRequest();
-        baseTS.bucketSize = Math.toIntExact(visitor.range.getSeconds());
+//        String metricName = metricName(visitor.matchers);
+//        TSAggregationRequest baseTS = new TSAggregationRequest();
+//        baseTS.bucketSize = Math.toIntExact(visitor.range.getSeconds());
+//
+//        NumericAggregationRequest avgInSec = new NumericAggregationRequest();
+//        avgInSec.type = "avg";
+//        avgInSec.col = metricName;
+//
+//        baseTS.subRequest = avgInSec;
+//        builder.addAggregation(metricName, baseTS);
 
-        NumericAggregationRequest avgInSec = new NumericAggregationRequest();
-        avgInSec.type = "avg";
-        avgInSec.col = metricName;
-
-        baseTS.subRequest = avgInSec;
-        builder.addAggregation(metricName, baseTS);
+        // [5m] -> start - (5m -> 300s)
+        long startTime = evaluator.getStart() - visitor.range.getSeconds();
+        long endTime = evaluator.getEnd();
+        builder.setTimeRangeFilter(startTime, endTime);
     }
 
     @Override

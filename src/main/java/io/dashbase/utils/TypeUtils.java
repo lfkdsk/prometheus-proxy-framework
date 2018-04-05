@@ -1,20 +1,11 @@
 package io.dashbase.utils;
 
-import com.google.common.collect.Lists;
-
-import java.math.BigInteger;
 import java.time.Duration;
-import java.time.temporal.TemporalUnit;
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 
 public final class TypeUtils {
     private TypeUtils() throws IllegalAccessException {
@@ -52,7 +43,7 @@ public final class TypeUtils {
      * isAlpha reports whether r is an alphabetic or underscore.
      **/
     public static boolean isAlpha(Character r) {
-        return Objects.nonNull(r) && (r == '_' || r == '.' || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z'));
+        return Objects.nonNull(r) && (r == '_' || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z'));
     }
 
     /**
@@ -60,6 +51,10 @@ public final class TypeUtils {
      */
     public static boolean isAlphaNumeric(Character r) {
         return Objects.nonNull(r) && (isAlpha(r) || isDigit(r));
+    }
+
+    public static boolean isKeyWordOrIdentifier(Character r) {
+        return Objects.nonNull(r) && (isAlpha(r) || isDigit(r) || r == '.');
     }
 
     // isLabel reports whether the string can be used as label.
@@ -91,6 +86,19 @@ public final class TypeUtils {
         return true;
     }
 
+    public static boolean isLong(String text) {
+        if (text.length() == 0) {
+            return true;
+        }
+
+        for (char c : text.toCharArray()) {
+            if (!isDigit(c)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     // Other Utils
@@ -103,7 +111,7 @@ public final class TypeUtils {
                    .count();
     }
 
-    public static Pattern durationRE = Pattern.compile("^([0-9]+)(y|w|d|h|m|s|ms)$");
+    private static Pattern durationRE = Pattern.compile("^([0-9]+)(y|w|d|h|m|s|ms)$");
 
     public static Duration parseDuration(String durationStr) {
         Matcher matches = durationRE.matcher(durationStr);

@@ -2,17 +2,15 @@ package io.dashbase.web.server;
 
 import io.dashbase.eval.Evaluator;
 import io.dashbase.utils.DateUtils;
+import io.dashbase.utils.TypeUtils;
 import io.dashbase.web.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rapid.api.RapidRequest;
-import rapid.api.RapidResponse;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.time.Duration;
 import java.util.Objects;
-
-import static io.dashbase.PrometheusProxyApplication.httpService;
 
 @Path("/api/v1")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -45,12 +43,13 @@ public final class PrometheusResource {
             @QueryParam("query") String query,
             @QueryParam("start") String start,
             @QueryParam("end") String end,
-            @QueryParam("step") int step,
+            @QueryParam("step") String step,
             @QueryParam("timeout") long timeout
     ) {
         long startTimeMillis = Objects.isNull(start) ? System.currentTimeMillis() : DateUtils.timeNum(start);
         long endTimeMillis = Objects.isNull(end) ? System.currentTimeMillis() : DateUtils.timeNum(end);
-        Evaluator evaluator = Evaluator.of(query, startTimeMillis, endTimeMillis);
+        Duration interval = TypeUtils.parseDuration(step);
+        Evaluator evaluator = Evaluator.of(query, startTimeMillis, endTimeMillis, interval);
         return evaluator.runRangeQuery();
     }
 }
