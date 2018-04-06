@@ -4,11 +4,11 @@ import io.dashbase.web.response.Response;
 
 public interface Result {
     default Response toResponse() {
-        return null;
+        throw new UnsupportedOperationException("UnSupported toResponse Operator in " + this.toString());
     }
 
     default Result combine(Result other) {
-        return null;
+        throw new UnsupportedOperationException("UnSupported Combine Operator in " + this.toString());
     }
 
     ResultType resultType();

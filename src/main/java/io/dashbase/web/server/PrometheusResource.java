@@ -77,7 +77,7 @@ public final class PrometheusResource {
         List<String> labels = info.schema.fields.stream()
                                                 .filter(field -> field.isNumeric)
 //                                                .filter(field -> field.name.contains(labelName))
-                                                .filter(field -> field.name.startsWith("jvm"))
+//                                                .filter(field -> field.name.startsWith("jvm"))
                                                 .map(field -> field.name)
                                                 .collect(toList());
 

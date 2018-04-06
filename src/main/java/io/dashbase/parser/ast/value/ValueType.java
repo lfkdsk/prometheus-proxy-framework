@@ -28,4 +28,8 @@ public enum ValueType {
                 return text;
         }
     }
+
+    public boolean isRangeSupport() {
+        return this == ValueTypeScalar || this == ValueTypeVector;
+    }
 }
