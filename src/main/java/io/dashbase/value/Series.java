@@ -3,8 +3,8 @@ package io.dashbase.value;
 import java.util.List;
 import java.util.Map;
 
-import static io.dashbase.utils.CollectionUtils.distinct;
-import static io.dashbase.utils.CollectionUtils.sort;
+import static io.dashbase.utils.collection.CollectionUtils.distinct;
+import static io.dashbase.utils.collection.CollectionUtils.sort;
 
 public class Series {
 

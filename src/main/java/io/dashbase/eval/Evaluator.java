@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static io.dashbase.PrometheusProxyApplication.httpService;
-import static io.dashbase.utils.CollectionUtils.distinct;
-import static io.dashbase.utils.CollectionUtils.sort;
+import static io.dashbase.utils.collection.CollectionUtils.*;
+import static java.lang.String.format;
 
 public final class Evaluator {
     private final static Logger logger = LoggerFactory.getLogger(Evaluator.class);
@@ -31,6 +31,7 @@ public final class Evaluator {
     private String queryString;
 
     @Getter
+    @Setter
     private Expr queryExpr;
 
     @Getter
@@ -65,22 +66,29 @@ public final class Evaluator {
     @Getter
     private List<Evaluator> subEvaluators;
 
-    private Evaluator(@NonNull String queryString, long start, long end, Duration interval) {
+    private Evaluator parent;
+
+    private Evaluator(@NonNull String queryString, long start, long end, Duration interval, Evaluator parent) {
         this.queryString = queryString;
         this.start = start;
         this.end = end;
         this.interval = interval;
         this.requestBuilder = RapidRequestBuilder.builder();
         this.request = requestBuilder.getRequest();
+        this.parent = parent;
         this.initEvaluator();
     }
 
     public static Evaluator of(String queryString, long time) {
-        return new Evaluator(queryString, time, time, Duration.ofSeconds(1));
+        return new Evaluator(queryString, time, time, Duration.ofSeconds(1), null);
+    }
+
+    public static Evaluator of(String queryString, long time, Evaluator parent) {
+        return new Evaluator(queryString, time, time, Duration.ofSeconds(1), parent);
     }
 
     public static Evaluator of(String queryString, long start, long end, Duration interval) {
-        return new Evaluator(queryString, start, end, interval);
+        return new Evaluator(queryString, start, end, interval, null);
     }
 
     private void initEvaluator() {
@@ -89,7 +97,7 @@ public final class Evaluator {
     }
 
     private Expr parse() {
-        return Parser.parseExpr(queryString);
+        return Objects.isNull(queryExpr) ? Parser.parseExpr(queryString) : queryExpr;
     }
 
     public Response runInstantQuery() {
@@ -113,6 +121,7 @@ public final class Evaluator {
 
     private Response instantQuery() {
         queryExpr = parse();
+
         reqConVisitor = ReqConVisitor.of(this);
         reqConVisitor.visit(queryExpr);
 
@@ -141,50 +150,60 @@ public final class Evaluator {
     }
 
     private Response rangeQuery() {
+        long startTime = System.currentTimeMillis();
         long intervalSeconds = interval.getSeconds();
         long steps = (end - start) / intervalSeconds;
 
-        subEvaluators = Lists.newLinkedList();
+        queryExpr = parse();
 
+        if (!queryExpr.valueType().isRangeSupport()) {
+            throw new IllegalArgumentException(format(
+                    "invalid expression type %s for range query, must be Scalar or instant Vector",
+                    queryExpr.valueType().documentedType()
+            ));
+        }
+
+        subEvaluators = Lists.newLinkedList();
+        // Note: for type convert
         Series series = Series.of(Lists.newArrayList(), Maps.newHashMap());
 
+        // prepare subEvaluator
         for (long start = this.start; start <= end; start += intervalSeconds) {
-            Evaluator subEvaluator = Evaluator.of(queryString, start);
+            Evaluator subEvaluator = Evaluator.of(queryString, start, this);
+            subEvaluator.setQueryExpr(queryExpr);
             subEvaluators.add(subEvaluator);
-            // run query
-            subEvaluator.runInstantQuery();
-            Result subResult = subEvaluator.getResult();
+        }
 
-            if (Objects.isNull(result)) {
-                result = subResult;
-                continue;
-            } else {
-                result = result.combine(subResult);
-            }
+        result = subEvaluators.parallelStream()
+                              .filter(evaluator -> Objects.nonNull(evaluator.runInstantQuery().getData()))
+                              .filter(evaluator -> Objects.nonNull(evaluator.getResult()))
+                              .map(Evaluator::getResult)
+                              .collect(resultCombine());
 
-            switch (result.resultType()) {
-                case vector: {
-                    Vector vector = (Vector) result;
-                    for (Sample sample : vector.list) {
-                        // TODO matrics should be hash => to get multi-type values now we just get same array
-                        if (series.metric.size() == 0) {
-                            series.metric.putAll(sample.metric);
-                        }
-
-                        series.values.add(sample.value);
+        switch (result.resultType()) {
+            case vector: {
+                Vector vector = (Vector) result;
+                for (Sample sample : vector.list) {
+                    // TODO matrics should be hash => to get multi-type values now we just get same array
+                    if (series.metric.size() == 0) {
+                        series.metric.putAll(sample.metric);
                     }
-                    break;
+
+                    series.values.add(sample.value);
                 }
+                break;
             }
         }
 
+        // run query
         if (Objects.isNull(result) || result.resultType() != Result.ResultType.matrix) {
 
             series = Series.of(
-                    sort(distinct(series.values)),
+                    sort(series.values),
                     series.metric
             );
 
+            System.out.println(System.currentTimeMillis() - startTime);
             return Response.of(
                     Result.ResultType.matrix,
                     Matrix.of(Lists.newArrayList(series))
