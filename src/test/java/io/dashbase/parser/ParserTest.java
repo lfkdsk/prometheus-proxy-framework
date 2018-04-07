@@ -1,7 +1,6 @@
 package io.dashbase.parser;
 
 import io.dashbase.exception.ParserException;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.expr.BinaryExpr;
@@ -26,7 +25,7 @@ import static io.dashbase.lexer.token.ItemType.*;
 import static io.dashbase.lexer.token.ItemType.itemMUL;
 import static io.dashbase.lexer.token.ItemType.itemSUB;
 import static org.junit.jupiter.api.Assertions.*;
-import static io.dashbase.parser.Parser.parser;
+import static io.dashbase.parser.QueryParser.parser;
 import static io.dashbase.parser.ast.value.VectorMatching.VectorMatchCardinality.*;
 import static io.dashbase.parser.ast.match.Functions.getFunction;
 import static io.dashbase.parser.ast.match.Labels.MetricNameLabel;
@@ -1796,13 +1795,13 @@ class ParserTest {
     // NaN has no equality. Thus, we need a separate test for it.
     @Test
     void testNaNExpression() {
-        Parser parser = parser("NaN");
+        QueryParser parser = parser("NaN");
         Expr expr = parser.parserExpr();
         assertTrue(expr instanceof NumberLiteral);
     }
 
     static void testParser(TestItem test) {
-        Parser parser = parser(test.input);
+        QueryParser parser = parser(test.input);
 
         Exception excepted = null;
         Expr expr = null;

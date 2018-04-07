@@ -2,7 +2,6 @@ package io.dashbase.web.server;
 
 import com.google.common.collect.Sets;
 import io.dashbase.eval.Evaluator;
-import io.dashbase.utils.DateUtils;
 import io.dashbase.utils.TypeUtils;
 import io.dashbase.web.response.Response;
 import org.slf4j.Logger;
@@ -13,10 +12,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static io.dashbase.PrometheusProxyApplication.httpService;
+import static io.dashbase.utils.DateUtils.timeMillis;
 import static io.dashbase.web.response.Response.ErrorType.errorBadData;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -34,7 +33,7 @@ public final class PrometheusResource {
             @QueryParam("time") String time,
             @QueryParam("timeout") long timeout
     ) {
-        long timeMillis = Objects.isNull(time) ? System.currentTimeMillis() : DateUtils.timeNum(time);
+        long timeMillis = timeMillis(time);
         Evaluator evaluator = Evaluator.of(query, timeMillis);
         return evaluator.runInstantQuery();
     }
@@ -55,8 +54,8 @@ public final class PrometheusResource {
             @QueryParam("step") String step,
             @QueryParam("timeout") long timeout
     ) {
-        long startTimeMillis = Objects.isNull(start) ? System.currentTimeMillis() : DateUtils.timeNum(start);
-        long endTimeMillis = Objects.isNull(end) ? System.currentTimeMillis() : DateUtils.timeNum(end);
+        long startTimeMillis = timeMillis(start);
+        long endTimeMillis = timeMillis(end);
         Duration interval = TypeUtils.parseDurationOrSecond(step);
         Evaluator evaluator = Evaluator.of(query, startTimeMillis, endTimeMillis, interval);
         return evaluator.runRangeQuery();
