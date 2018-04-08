@@ -17,6 +17,7 @@ public final class ResultCombineCollector implements Collector<Result, List<Resu
 
     @Override
     public Supplier<List<Result>> supplier() {
+        // Note: use CopyOnWrite or will occur sync error (lose some point on graph).
         return CopyOnWriteArrayList::new;
     }
 
