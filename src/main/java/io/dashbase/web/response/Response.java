@@ -58,4 +58,10 @@ public class Response<T> {
     public static Response empty() {
         return new Response();
     }
+
+    public static <R> Response<R> empty(R emptyData) {
+        Response<R> response = new Response<>();
+        response.setData(emptyData);
+        return response;
+    }
 }

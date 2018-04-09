@@ -54,7 +54,7 @@ public final class TypeUtils {
     }
 
     public static boolean isKeyWordOrIdentifier(Character r) {
-        return Objects.nonNull(r) && (isAlpha(r) || isDigit(r) || r == '.');
+        return Objects.nonNull(r) && (isAlpha(r) || isDigit(r) || r == '.' || r == '-');
     }
 
     // isLabel reports whether the string can be used as label.

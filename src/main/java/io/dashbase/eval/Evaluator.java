@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.Objects;
 
 import static io.dashbase.PrometheusProxyApplication.httpService;
-import static io.dashbase.utils.collection.CollectionUtils.*;
+import static io.dashbase.parser.ast.ExprType.AggregateExpr;
+import static io.dashbase.utils.collection.CollectionUtils.resultCombine;
+import static io.dashbase.utils.collection.CollectionUtils.sort;
 import static java.lang.String.format;
 
 public final class Evaluator {
@@ -150,7 +152,6 @@ public final class Evaluator {
     }
 
     private Response rangeQuery() {
-        long startTime = System.currentTimeMillis();
         long intervalSeconds = interval.getSeconds();
         long steps = (end - start) / intervalSeconds;
 
@@ -163,47 +164,22 @@ public final class Evaluator {
             ));
         }
 
-        subEvaluators = Lists.newLinkedList();
+        if (queryExpr.exprType == AggregateExpr) {
+            result = simpleAggsRangeQuery();
+        } else {
+            result = rangeQueryMultiTimes();
+        }
+
         // Note: for type convert
-        Series series = Series.of(Lists.newArrayList(), Maps.newHashMap());
+        Series series = refactorOtherResults(result, Series.of(Lists.newArrayList(), Maps.newHashMap()));
 
-        // prepare subEvaluator
-        for (long start = this.start; start <= end; start += intervalSeconds) {
-            Evaluator subEvaluator = Evaluator.of(queryString, start, this);
-            subEvaluator.setQueryExpr(queryExpr);
-            subEvaluators.add(subEvaluator);
-        }
-
-        result = subEvaluators.parallelStream()
-                              .filter(evaluator -> Objects.nonNull(evaluator.runInstantQuery().getData()))
-                              .filter(evaluator -> Objects.nonNull(evaluator.getResult()))
-                              .map(Evaluator::getResult)
-                              .collect(resultCombine());
-
-        switch (result.resultType()) {
-            case vector: {
-                Vector vector = (Vector) result;
-                for (Sample sample : vector.list) {
-                    // TODO matrics should be hash => to get multi-type values now we just get same array
-                    if (series.metric.size() == 0) {
-                        series.metric.putAll(sample.metric);
-                    }
-
-                    series.values.add(sample.value);
-                }
-                break;
-            }
-        }
-
-        // run query
+        // Note: Reset return type
         if (Objects.isNull(result) || result.resultType() != Result.ResultType.matrix) {
-
             series = Series.of(
                     sort(series.values),
                     series.metric
             );
 
-            System.out.println(System.currentTimeMillis() - startTime);
             return Response.of(
                     Result.ResultType.matrix,
                     Matrix.of(Lists.newArrayList(series))
@@ -216,5 +192,64 @@ public final class Evaluator {
 
         prometheusRes = result.toResponse();
         return prometheusRes;
+    }
+
+    /**
+     * Simple Aggs Query Use one dashbase Query
+     *
+     * @return simple result.
+     */
+    private Result simpleAggsRangeQuery() {
+        requestBuilder.setTimeRangeFilter(start, end);
+        instantQuery();
+        return getResult();
+    }
+
+    // TODO: should support by dashbase
+
+    /**
+     * Query Dashbase multi-times with multi-queries.
+     * Query split with Interval Seconds
+     *
+     * @return combine result
+     */
+    private Result rangeQueryMultiTimes() {
+        subEvaluators = Lists.newLinkedList();
+        long intervalSeconds = interval.getSeconds();
+        // prepare subEvaluator
+        for (long start = this.start; start <= end; start += intervalSeconds) {
+            Evaluator subEvaluator = Evaluator.of(queryString, start, this);
+            subEvaluator.setQueryExpr(queryExpr);
+            subEvaluators.add(subEvaluator);
+        }
+
+        return subEvaluators.parallelStream()
+                            .filter(evaluator -> Objects.nonNull(evaluator.runInstantQuery().getData()))
+                            .filter(evaluator -> Objects.nonNull(evaluator.getResult()))
+                            .map(Evaluator::getResult)
+                            .collect(resultCombine());
+    }
+
+    // TODO: if support multi-field input$2 should be Map<String, Series>
+    private Series refactorOtherResults(Result result, Series series) {
+        if (Objects.isNull(result)) {
+            return series;
+        }
+
+        switch (result.resultType()) {
+            case vector: {
+                Vector vector = (Vector) result;
+                for (Sample sample : vector.list) {
+                    // TODO matrics should be hash => to get multi-type values now we just get same array
+                    if (series.metric.size() == 0) {
+                        series.metric.putAll(sample.metric);
+                    }
+                    series.values.add(sample.value);
+                }
+                break;
+            }
+        }
+
+        return series;
     }
 }

@@ -2,7 +2,6 @@ package io.dashbase.eval;
 
 import com.google.common.collect.Lists;
 import io.dashbase.eval.binder.ExprVoidVisitor;
-import io.dashbase.lexer.token.ItemType;
 import io.dashbase.parser.ast.expr.BinaryExpr;
 import io.dashbase.parser.ast.expr.ParenExpr;
 import io.dashbase.parser.ast.expr.UnaryExpr;
@@ -25,6 +24,7 @@ import rapid.api.query.StringQuery;
 
 import java.util.List;
 
+import static io.dashbase.lexer.token.ItemType.*;
 import static io.dashbase.parser.ast.match.Labels.MetricName;
 import static io.dashbase.parser.ast.value.VectorSelector.metricName;
 import static java.lang.String.format;
@@ -49,7 +49,7 @@ public final class ReqConVisitor implements ExprVoidVisitor {
     public void visit(AggregateExpr visitor) {
         visit(visitor.expr);
 
-        if (visitor.op == ItemType.itemAvg) {
+        if (visitor.op == itemAvg || visitor.op == itemMax || visitor.op == itemMin) {
             VectorSelector vector = (VectorSelector) visitor.expr;
             String metricName = metricName(vector.matchers);
             TSAggregationRequest baseTS = new TSAggregationRequest();
