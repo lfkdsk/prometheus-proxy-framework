@@ -2,7 +2,7 @@ package io.dashbase.eval;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import io.dashbase.parser.Parser;
+import io.dashbase.parser.QueryParser;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.utils.RapidRequestBuilder;
 import io.dashbase.value.*;
@@ -99,7 +99,7 @@ public final class Evaluator {
     }
 
     private Expr parse() {
-        return Objects.isNull(queryExpr) ? Parser.parseExpr(queryString) : queryExpr;
+        return Objects.isNull(queryExpr) ? QueryParser.parseExpr(queryString) : queryExpr;
     }
 
     public Response runInstantQuery() {

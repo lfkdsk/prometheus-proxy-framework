@@ -3,6 +3,7 @@ package io.dashbase.value;
 import io.dashbase.web.response.Response;
 
 public interface Result {
+
     default Response toResponse() {
         throw new UnsupportedOperationException("UnSupported toResponse Operator in " + this.toString());
     }

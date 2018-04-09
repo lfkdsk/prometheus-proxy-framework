@@ -1,5 +1,7 @@
 package io.dashbase.value;
 
+import lombok.NonNull;
+
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +14,7 @@ public class Series {
 
     public final Map<String, String> metric;
 
-    private Series(List<Point> values, Map<String, String> metrics) {
+    private Series(@NonNull List<Point> values, @NonNull Map<String, String> metrics) {
         this.values = values;
         this.metric = metrics;
     }

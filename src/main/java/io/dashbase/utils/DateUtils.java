@@ -1,8 +1,11 @@
 package io.dashbase.utils;
 
+import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+
+import java.util.Objects;
 
 import static io.dashbase.utils.TypeUtils.isLong;
 
@@ -23,5 +26,9 @@ public final class DateUtils {
         }
 
         return dateTimeFormatter.withZoneUTC().parseMillis(timestamp) / 1000;
+    }
+
+    public static long timeMillis(@NonNull String timestamp) {
+        return Objects.isNull(timestamp) ? System.currentTimeMillis() : timeNum(timestamp);
     }
 }

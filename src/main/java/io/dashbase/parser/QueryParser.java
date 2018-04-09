@@ -33,12 +33,12 @@ import static io.dashbase.parser.ast.match.Functions.getFunction;
 import static io.dashbase.parser.ast.match.Labels.MetricName;
 import static io.dashbase.utils.TypeUtils.isLabel;
 
-public final class Parser {
+public final class QueryParser {
     private final QueryLexer lexer;
     private final TokenItem[] tokens;
     private int peekCount;
 
-    public Parser(@NonNull String input) {
+    private QueryParser(@NonNull String input) {
         this.lexer = QueryLexer.lexer(input);
         this.tokens = new TokenItem[3];
     }
@@ -812,20 +812,20 @@ public final class Parser {
                 break;
             }
 
-            //            default: {
-            //                errorf("unknown node type: %s", expr.toString());
-            //            }
+            //  default: {
+            //      errorf("unknown node type: %s", expr.toString());
+            //  }
         }
 
         return valueType;
     }
 
-    public static Parser parser(String input) {
-        return new Parser(input);
+    public static QueryParser parser(String input) {
+        return new QueryParser(input);
     }
 
     public static Expr parseExpr(String input) {
-        Parser parser = parser(input);
+        QueryParser parser = parser(input);
         Expr expr = parser.parserExpr();
         parser.typeCheck(expr);
         return expr;

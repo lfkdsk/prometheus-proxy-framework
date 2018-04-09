@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.dashbase.web.response.BaseResult;
 import io.dashbase.web.response.Response;
+import lombok.NonNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 public class Matrix implements Result {
     public final List<Series> list;
 
-    private Matrix(List<Series> list) {
+    private Matrix(@NonNull List<Series> list) {
         this.list = list;
     }
 

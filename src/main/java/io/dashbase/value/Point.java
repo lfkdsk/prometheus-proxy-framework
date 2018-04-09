@@ -5,17 +5,18 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Lists;
+import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.List;
 
 @JsonSerialize(using = Point.PointSerializer.class)
-public class Point implements Comparable<Point>{
+public class Point implements Comparable<Point> {
     public final long timestamp;
     public final String value;
 
-    private Point(long timestamp, String value) {
+    private Point(long timestamp, @NonNull String value) {
         this.timestamp = timestamp;
         this.value = value;
     }

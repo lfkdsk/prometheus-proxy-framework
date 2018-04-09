@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Lists;
+import lombok.NonNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,7 +16,7 @@ public class Scalar {
     public final long timestamp;
     public final String value;
 
-    private Scalar(long timestamp, String value) {
+    private Scalar(long timestamp, @NonNull String value) {
         this.timestamp = timestamp;
         this.value = value;
     }
