@@ -9,7 +9,7 @@
 
     <name>PrometheusProxy</name>
     <groupId>io.dashbase</groupId>
-    <artifactId>prometheus-proxy-framework</artifactId>
+    <artifactId>prometheus-proxy</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -213,7 +213,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <repository>dashbase/prometheus-proxy-framework</repository>
+                    <repository>dashbase/prometheus-proxy</repository>
                     <tag>dev</tag>
                     <buildArgs>
                         <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>

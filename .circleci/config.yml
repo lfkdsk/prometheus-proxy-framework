@@ -6,20 +6,13 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
       - image: circleci/openjdk:8-jdk
-      
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
 
     working_directory: ~/repo
 
     environment:
-      # Customize the JVM maximum heap limit
       MAVEN_OPTS: -Xmx3200m
-    
+
     steps:
       - checkout
 
@@ -38,5 +31,45 @@ jobs:
           paths:
             - ~/.m2
 
-      # run tests!
       - run: mvn integration-test
+
+      - run: ssh-keyscan ${PROMETHEUS_HOST} >> ~/.ssh/known_hosts
+
+      - deploy:
+          name: "Push Dev image to Docker Hub"
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+              echo "Pushing Docker Image [:dev]"
+              docker push dashbase/prometheus-proxy:dev
+            fi
+
+      - deploy:
+          name: "Send Token files"
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              echo "Sending Token"
+              echo SECRET_TOKEN=${SECRET_TOKEN} > run.env
+              scp run.env ec2-user@${PROMETHEUS_HOST}:/home/ec2-user
+            fi
+
+      - deploy:
+          name: "Deploy dev deployment"
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              echo "Deploying dev deployment"
+              scp docker-compose.yml ec2-user@${PROMETHEUS_HOST}:/home/ec2-user
+              ssh ec2-user@${PROMETHEUS_HOST} docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+              ssh ec2-user@${PROMETHEUS_HOST} docker-compose -f docker-compose.yml pull
+              ssh ec2-user@${PROMETHEUS_HOST} docker-compose -f docker-compose.yml down
+              ssh ec2-user@${PROMETHEUS_HOST} docker-compose -f docker-compose.yml up -d
+            fi
+
+workflows:
+  version: 2
+  build-n-deploy:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /^v.*/

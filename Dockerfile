@@ -7,7 +7,7 @@ RUN   apk update \
 
 # Add the service itself
 ARG JAR_FILE
-ADD target/${JAR_FILE} prometheus-proxy-framework.jar
+ADD target/${JAR_FILE} prometheus-proxy.jar
 ADD config.yml /config.yml
 ADD ./docker-entrypoint.sh /docker-entrypoint.sh
 
