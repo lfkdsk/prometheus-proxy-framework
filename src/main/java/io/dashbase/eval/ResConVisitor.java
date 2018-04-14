@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.dashbase.PrometheusProxyApplication;
 import io.dashbase.eval.binder.ExprVoidVisitor;
-import io.dashbase.lexer.token.ItemType;
 import io.dashbase.parser.ast.expr.BinaryExpr;
 import io.dashbase.parser.ast.expr.ParenExpr;
 import io.dashbase.parser.ast.expr.UnaryExpr;
@@ -24,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.dashbase.lexer.token.ItemType.itemAvg;
+import static io.dashbase.lexer.token.ItemType.itemMax;
+import static io.dashbase.lexer.token.ItemType.itemMin;
 import static io.dashbase.parser.ast.value.VectorSelector.metricName;
 import static java.util.Collections.singletonList;
 
@@ -47,7 +49,7 @@ public final class ResConVisitor implements ExprVoidVisitor {
 
     @Override
     public void visit(AggregateExpr visitor) {
-        if (visitor.op == ItemType.itemAvg) {
+        if (visitor.op == itemAvg || visitor.op == itemMin || visitor.op == itemMax) {
             VectorSelector selector = (VectorSelector) visitor.expr;
             String metricName = metricName(selector.matchers);
 

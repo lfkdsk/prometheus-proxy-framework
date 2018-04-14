@@ -3,11 +3,14 @@ package io.dashbase.web.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.dashbase.value.Result;
 import lombok.Data;
+import lombok.NonNull;
+
+import static io.dashbase.web.response.Response.StatusType.success;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Response<T> {
-    private String status = "success"; // "success" | "error"
+    private StatusType status = success; // "success" | "error"
 
     private T data;
     // Only set if status is "error". The data field may still hold
@@ -15,6 +18,22 @@ public class Response<T> {
     private ErrorType errorType;
 
     private String error;
+
+    public enum StatusType {
+        success("success"),
+        error("error");
+
+        private String text;
+
+        StatusType(String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return text;
+        }
+    }
 
     public enum ErrorType {
         errorNone(""),
@@ -37,7 +56,7 @@ public class Response<T> {
         }
     }
 
-    public static Response error(ErrorType errorType, String error) {
+    public static Response error(@NonNull ErrorType errorType, @NonNull String error) {
         Response response = new Response();
         response.error = error;
         response.errorType = errorType;
@@ -50,12 +69,18 @@ public class Response<T> {
         return response;
     }
 
-    public static <R> Response<BaseResult<R>> of(Result.ResultType resultType, R result) {
+    public static <R> Response<BaseResult<R>> of(@NonNull Result.ResultType resultType, R result) {
         BaseResult<R> base = BaseResult.of(resultType, result);
         return of(base);
     }
 
     public static Response empty() {
         return new Response();
+    }
+
+    public static <R> Response<R> empty(R emptyData) {
+        Response<R> response = new Response<>();
+        response.setData(emptyData);
+        return response;
     }
 }

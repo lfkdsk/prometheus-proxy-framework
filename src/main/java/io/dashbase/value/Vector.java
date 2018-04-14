@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.dashbase.web.response.BaseResult;
 import io.dashbase.web.response.Response;
+import lombok.NonNull;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -17,7 +18,7 @@ import java.util.Objects;
 public class Vector implements Result{
     public final List<Sample> list;
 
-    private Vector(List<Sample> list) {
+    private Vector(@NonNull List<Sample> list) {
         this.list = list;
     }
 

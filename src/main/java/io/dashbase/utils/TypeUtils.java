@@ -54,7 +54,7 @@ public final class TypeUtils {
     }
 
     public static boolean isKeyWordOrIdentifier(Character r) {
-        return Objects.nonNull(r) && (isAlpha(r) || isDigit(r) || r == '.');
+        return Objects.nonNull(r) && (isAlpha(r) || isDigit(r) || r == '.' || r == '-');
     }
 
     // isLabel reports whether the string can be used as label.
@@ -86,13 +86,13 @@ public final class TypeUtils {
         return true;
     }
 
-    public static boolean isLong(String text) {
+    public static boolean isTimestamp(String text) {
         if (text.length() == 0) {
             return true;
         }
 
         for (char c : text.toCharArray()) {
-            if (!isDigit(c)) {
+            if (!(isDigit(c) || c == '.')) {
                 return false;
             }
         }
@@ -114,8 +114,8 @@ public final class TypeUtils {
     private static Pattern durationRE = Pattern.compile("^([0-9]+)(y|w|d|h|m|s|ms)$");
 
     public static Duration parseDurationOrSecond(String durationStr) {
-        if (TypeUtils.isLong(durationStr)) {
-            return Duration.ofSeconds(Long.parseLong(durationStr));
+        if (isTimestamp(durationStr)) {
+            return Duration.ofSeconds((long) Double.parseDouble(durationStr));
         }
 
         return parseDuration(durationStr);

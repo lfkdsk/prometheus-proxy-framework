@@ -1,10 +1,13 @@
 package io.dashbase.utils;
 
+import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import static io.dashbase.utils.TypeUtils.isLong;
+import java.util.Objects;
+
+import static io.dashbase.utils.TypeUtils.isTimestamp;
 
 public final class DateUtils {
     private DateUtils() throws IllegalAccessException {
@@ -18,10 +21,14 @@ public final class DateUtils {
     }
 
     public static long timeNum(@NotNull String timestamp) {
-        if (isLong(timestamp)) {
-            return Long.parseLong(timestamp);
+        if (isTimestamp(timestamp)) {
+            return (long) Double.parseDouble(timestamp);
         }
 
         return dateTimeFormatter.withZoneUTC().parseMillis(timestamp) / 1000;
+    }
+
+    public static long timeMillis(@NonNull String timestamp) {
+        return Objects.isNull(timestamp) ? System.currentTimeMillis() : timeNum(timestamp);
     }
 }
