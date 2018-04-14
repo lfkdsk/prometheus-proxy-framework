@@ -144,7 +144,7 @@ public final class ReqConVisitor implements ExprVoidVisitor {
             }
         }
 
-        if (subQueries.size() > 0) {
+        if (subQueries.size() > 1) {
             Conjunction conjunction = new Conjunction(subQueries);
             builder.addQuery(conjunction);
         }

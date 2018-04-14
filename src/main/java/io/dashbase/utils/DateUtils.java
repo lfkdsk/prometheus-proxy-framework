@@ -7,7 +7,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 import java.util.Objects;
 
-import static io.dashbase.utils.TypeUtils.isLong;
+import static io.dashbase.utils.TypeUtils.isTimestamp;
 
 public final class DateUtils {
     private DateUtils() throws IllegalAccessException {
@@ -21,8 +21,8 @@ public final class DateUtils {
     }
 
     public static long timeNum(@NotNull String timestamp) {
-        if (isLong(timestamp)) {
-            return Long.parseLong(timestamp);
+        if (isTimestamp(timestamp)) {
+            return (long) Double.parseDouble(timestamp);
         }
 
         return dateTimeFormatter.withZoneUTC().parseMillis(timestamp) / 1000;
