@@ -8,6 +8,7 @@ import io.dashbase.parser.ast.expr.UnaryExpr;
 import io.dashbase.parser.ast.literal.NumberLiteral;
 import io.dashbase.parser.ast.literal.StringLiteral;
 import io.dashbase.parser.ast.match.Call;
+import io.dashbase.parser.ast.match.Function;
 import io.dashbase.parser.ast.match.Matcher;
 import io.dashbase.parser.ast.value.AggregateExpr;
 import io.dashbase.parser.ast.value.MatrixSelector;
@@ -105,7 +106,9 @@ public final class ReqConVisitor implements ExprVoidVisitor {
 
     @Override
     public void visit(Call visitor) {
-
+        Function function = visitor.function;
+        // run extend function
+        function.call.call(visitor.args, visitor, evaluator);
     }
 
     private void conSubQueries(List<Matcher> marchers) {

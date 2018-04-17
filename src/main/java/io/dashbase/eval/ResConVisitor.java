@@ -10,6 +10,7 @@ import io.dashbase.parser.ast.expr.UnaryExpr;
 import io.dashbase.parser.ast.literal.NumberLiteral;
 import io.dashbase.parser.ast.literal.StringLiteral;
 import io.dashbase.parser.ast.match.Call;
+import io.dashbase.parser.ast.match.Function;
 import io.dashbase.parser.ast.match.Matcher;
 import io.dashbase.parser.ast.value.AggregateExpr;
 import io.dashbase.parser.ast.value.MatrixSelector;
@@ -23,9 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static io.dashbase.lexer.token.ItemType.itemAvg;
-import static io.dashbase.lexer.token.ItemType.itemMax;
-import static io.dashbase.lexer.token.ItemType.itemMin;
+import static io.dashbase.lexer.token.ItemType.*;
 import static io.dashbase.parser.ast.value.VectorSelector.metricName;
 import static java.util.Collections.singletonList;
 
@@ -164,6 +163,33 @@ public final class ResConVisitor implements ExprVoidVisitor {
 
     @Override
     public void visit(Call visitor) {
+        Function function = visitor.function;
+        switch (function.name) {
+            case "ts": {
+                timeSeriesResult(visitor);
+                break;
+            }
+        }
+    }
 
+    private void timeSeriesResult(Call visitor) {
+        AggregationResponse subRes = response.aggregations.get("ts");
+        if (Objects.nonNull(subRes) && subRes instanceof HistogramAggregationResponse) {
+            List<HistogramBucket> buckets = ((HistogramAggregationResponse) subRes).histogramBuckets;
+            List<Sample> samples = Lists.newArrayList();
+
+            Map<String, String> metrics = Maps.newHashMap();
+            metrics.put("instance", PrometheusProxyApplication.config.getInstance());
+            metrics.put("job", PrometheusProxyApplication.config.getJob());
+
+            for (HistogramBucket bucket : buckets) {
+                Point point = Point.of(bucket.timeInSec, String.valueOf(bucket.count));
+                Sample sample = Sample.of(point, metrics);
+                samples.add(sample);
+            }
+
+            Vector vector = Vector.of(samples);
+            evaluator.setResult(vector);
+        }
     }
 }

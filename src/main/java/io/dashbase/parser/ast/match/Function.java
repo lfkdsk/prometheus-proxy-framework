@@ -1,5 +1,6 @@
 package io.dashbase.parser.ast.match;
 
+import io.dashbase.eval.Evaluator;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.value.ValueType;
 
@@ -16,8 +17,8 @@ public class Function {
     public CallFunction call;
 
     @FunctionalInterface
-    public interface CallFunction<T, E> {
-        T call(List<Expr> exprs, E value);
+    public interface CallFunction {
+        void call(List<Expr> exprs, Call value, Evaluator evaluator);
     }
 
     private Function(String name, List<ValueType> args, int variadic, ValueType returnType, CallFunction call) {

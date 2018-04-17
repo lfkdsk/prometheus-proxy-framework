@@ -21,6 +21,7 @@ import java.util.Objects;
 
 import static io.dashbase.PrometheusProxyApplication.httpService;
 import static io.dashbase.parser.ast.ExprType.AggregateExpr;
+import static io.dashbase.parser.ast.ExprType.Call;
 import static io.dashbase.utils.collection.CollectionUtils.resultCombine;
 import static io.dashbase.utils.collection.CollectionUtils.sort;
 import static java.lang.String.format;
@@ -164,7 +165,7 @@ public final class Evaluator {
             ));
         }
 
-        if (queryExpr.exprType == AggregateExpr) {
+        if (queryExpr.exprType == AggregateExpr || queryExpr.exprType == Call) {
             result = simpleAggsRangeQuery();
         } else {
             result = rangeQueryMultiTimes();
