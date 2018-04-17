@@ -19,49 +19,48 @@ import static io.dashbase.parser.ast.value.ValueType.*;
 import static io.dashbase.utils.TypeUtils.parseDuration;
 
 public final class Functions {
-    public static final Map<String, Function> functions = Maps.newHashMap();
+    private static final Map<String, Function> functions = Maps.newHashMap();
 
     static {
-        functions.put("time", Function.of(
+        Function.of(
                 "time",
                 Collections.emptyList(),
                 0,
                 ValueTypeScalar,
                 null // TODO : all your function here
-        ));
+        ).addTo(functions);
 
-
-        functions.put("floor", Function.of(
+        Function.of(
                 "floor",
                 Arrays.asList(ValueTypeVector),
                 0,
                 ValueTypeVector,
                 null // TODO : all your function here
-        ));
+        ).addTo(functions);
 
-        functions.put("rate", Function.of(
+        Function.of(
                 "rate",
                 Arrays.asList(ValueTypeMatrix),
                 0,
                 ValueTypeVector,
                 null // TODO : all your function here
-        ));
+        ).addTo(functions);
 
-        functions.put("round", Function.of(
+        Function.of(
                 "round",
                 Arrays.asList(ValueTypeVector, ValueTypeScalar),
                 1,
                 ValueTypeVector,
                 null // TODO : all your function here
-        ));
+        ).addTo(functions);
 
-        functions.put("ts", Function.of(
+        Function.of(
                 "ts",
                 Arrays.asList(ValueTypeString, ValueTypeScalar),
                 1,
                 ValueTypeVector,
                 Functions::timeSeries
-        ));
+        ).addTo(functions);
     }
 
     public static Function getFunction(String name) {

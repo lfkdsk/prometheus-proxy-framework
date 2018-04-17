@@ -61,25 +61,30 @@ public final class PrometheusResource {
         return evaluator.runRangeQuery();
     }
 
-    private static Pattern labelNamePattern = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
 
     @Path("label/{label_name}/values")
     @GET
     public Response values(
             @PathParam("label_name") String labelName
     ) throws Exception {
-        if (!labelNamePattern.matcher(labelName).matches()) {
+        if (!isLegalLabelName(labelName)) {
             return Response.error(errorBadData, format("invalid label name: %s", labelName));
         }
 
         RapidServiceInfo info = httpService.getInfo(Sets.newHashSet("_metrics"));
         List<String> labels = info.schema.fields.stream()
                                                 .filter(field -> field.isNumeric)
-//                                                .filter(field -> field.name.contains(labelName))
-//                                                .filter(field -> field.name.startsWith("jvm"))
+                                                //                                                .filter(field -> field.name.contains(labelName))
+                                                //                                                .filter(field -> field.name.startsWith("jvm"))
                                                 .map(field -> field.name)
                                                 .collect(toList());
 
         return Response.of(labels);
+    }
+
+    private static Pattern labelNamePattern = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
+
+    private static boolean isLegalLabelName(String labelName) {
+        return labelNamePattern.matcher(labelName).matches();
     }
 }

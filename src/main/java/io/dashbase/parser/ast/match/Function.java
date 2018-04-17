@@ -3,8 +3,10 @@ package io.dashbase.parser.ast.match;
 import io.dashbase.eval.Evaluator;
 import io.dashbase.parser.ast.Expr;
 import io.dashbase.parser.ast.value.ValueType;
+import lombok.NonNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static java.util.stream.Collectors.joining;
@@ -53,5 +55,9 @@ public class Function {
 
         Function other = (Function) obj;
         return hashCode() == other.hashCode();
+    }
+
+    public void addTo(@NonNull Map<String, Function> funcs) {
+        funcs.put(name, this);
     }
 }

@@ -39,7 +39,6 @@ public class Vector implements Result{
         }
     }
 
-
     @Override
     public Result combine(Result other) {
         if (Objects.isNull(other) || other.resultType() != ResultType.vector) {
