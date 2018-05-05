@@ -74,8 +74,6 @@ public final class PrometheusResource {
         RapidServiceInfo info = httpService.getInfo(Sets.newHashSet("_metrics"));
         List<String> labels = info.schema.fields.stream()
                                                 .filter(field -> field.isNumeric)
-                                                //                                                .filter(field -> field.name.contains(labelName))
-                                                //                                                .filter(field -> field.name.startsWith("jvm"))
                                                 .map(field -> field.name)
                                                 .collect(toList());
 
